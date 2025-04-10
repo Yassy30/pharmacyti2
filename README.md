@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # pharmacyti
 =======
 # pharmaciyti - Mobile Medicine Delivery App
@@ -55,4 +55,4 @@ Pharmaciyti is a mobile application that serves as a bridge between **pharmacies
 For more info or collaboration:
 📧 yasminajabrouni@gmail.com
 
->>>>>>> 00103d361d4efb499821e617d32340ed992e5666
+
