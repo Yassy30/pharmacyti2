@@ -40,60 +40,14 @@ Pharmaciyti is a mobile application that serves as a bridge between **pharmacies
 ---
 
 ## 📁 Project Structure
-lib/
-│
-├── main.dart                        # Entry point of the app
-├── start_wrapper.dart               # Handles onboarding/auth redirection
-│
-├── onboarding/                     # Onboarding screens
-│   ├── onboarding_screen_1.dart
-│   ├── onboarding_screen_2.dart
-│   ├── onboarding_screen_3.dart
-│   └── onboarding_wrapper.dart
-│
-├── auth/                           # Authentication (login/signup)
-│   ├── login_page.dart
-│   ├── signup_page.dart
-│   └── auth_service.dart           # Supabase auth logic
-│
-├── client/                         # Client interface
-│   ├── home_page.dart
-│   ├── pharmacies_page.dart
-│   ├── order_page.dart
-│   ├── prescription_upload.dart
-│   └── history_page.dart
-│
-├── livreur/                        # Livreur (delivery person) interface
-│   ├── profile_page.dart
-│   ├── orders_page.dart
-│   └── invoice_page.dart
-│
-├── pharmacie/                      # Pharmacie interface
-│   ├── orders_page.dart
-│   └── profile_page.dart
-│
-├── admin/                          # Admin interface
-│   ├── verify_pharmacies_page.dart
-│   ├── pharmacies_list_page.dart
-│   ├── orders_by_pharmacy_page.dart
-│   └── orders_by_livreur_page.dart
-│
-├── core/                           # Shared logic and resources
-│   ├── models/                     # Data models (User, Order, etc.)
-│   ├── services/                   # Supabase services (DB, storage)
-│   ├── utils/                      # Helpers and constants
-│   └── widgets/                    # Reusable UI components
-│
-└── router/                         # App routing logic
-    └── app_router.dart
 
 
-📌 Contributors
+## 📌 Contributors
 🎨 Designed by: Fatima Bichouarine
 💻 Developed by: Yasmina Jabrouni - Oumaima Mouine
 🏫 Final Year Project (PFE) – Mobile App Development
 
-📬 Contact
+## 📬 Contact
 For more info or collaboration:
 📧 yasminajabrouni@gmail.com
 
