@@ -43,9 +43,9 @@ Pharmaciyti is a mobile application that serves as a bridge between **pharmacies
 
 
 ## 📌 Contributors
-🎨 Designed by: Fatima Bichouarine
-💻 Developed by: Yasmina Jabrouni - Oumaima Mouine
-🏫 Final Year Project (PFE) – Mobile App Development
+####🎨 Designed by: Fatima Bichouarine
+####💻 Developed by: Yasmina Jabrouni - Oumaima Mouine
+####🏫 Final Year Project (PFE) – Mobile App Development
 
 ## 📬 Contact
 For more info or collaboration:
