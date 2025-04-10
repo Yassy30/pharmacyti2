@@ -35,55 +35,6 @@ class _Onboarding3State extends State<Onboarding3> {
               width: 0.9872773536895675 * mediaQW,
             ),
           ),
-          // Positioned(
-          //   top: 0.8568075117370892 * mediaQH,
-          //   left: 0.06615776081424936 * mediaQW,
-          //   child: Container(
-          //     height: 0.056338028169014086 * mediaQH,
-          //     width: 0.8676844783715013 * mediaQW,
-          //     decoration: BoxDecoration(
-          //         color: const Color(0xff2299c3),
-          //         border: Border.all(color: const Color(0x00000000)),
-          //         borderRadius: const BorderRadius.only(
-          //           topLeft: Radius.circular(6),
-          //           topRight: Radius.circular(6),
-          //           bottomLeft: Radius.circular(6),
-          //           bottomRight: Radius.circular(6),
-          //         )),
-          //     alignment: Alignment.center,
-          //   ),
-          // ),
-          // Positioned(
-          //   top: 0.8568075117370892 * mediaQH,
-          //   left: 0.06615776081424936 * mediaQW,
-          //   child: GestureDetector(
-          //     onTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (context) => const GetStarted(),
-          //         ),
-          //       );
-          //     },
-          //     child: Container(
-          //       height: 0.056338028169014086 * mediaQH,
-          //       width: 0.8676844783715013 * mediaQW,
-          //       decoration: BoxDecoration(
-          //         color: const Color(0xff2299c3),
-          //         borderRadius: BorderRadius.circular(6),
-          //       ),
-          //       alignment: Alignment.center,
-          //       child: const Text(
-          //         "Next",
-          //         style: TextStyle(
-          //           color: Colors.white,
-          //           fontWeight: FontWeight.w600,
-          //           fontSize: 16,
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
           Positioned(
             top: 0.16314553990610328 * mediaQH,
             left: 0.10432569974554708 * mediaQW,
@@ -114,60 +65,6 @@ class _Onboarding3State extends State<Onboarding3> {
               ),
             ),
           ),
-          // Positioned(
-          //   top: 0.818075117370892 * mediaQH,
-          //   left: 0.32061068702290074 * mediaQW,
-          //   child: Container(
-          //     height: 0.008215962441314555 * mediaQH,
-          //     width: 0.06615776081424936 * mediaQW,
-          //     decoration: BoxDecoration(
-          //         color: const Color(0xffe7e7e7),
-          //         border: Border.all(color: const Color(0x00000000)),
-          //         borderRadius: const BorderRadius.only(
-          //           topLeft: Radius.circular(4),
-          //           topRight: Radius.circular(4),
-          //           bottomLeft: Radius.circular(4),
-          //           bottomRight: Radius.circular(4),
-          //         )),
-          //     alignment: Alignment.center,
-          //   ),
-          // ),
-          // Positioned(
-          //   top: 0.818075117370892 * mediaQH,
-          //   left: 0.4071246819338422 * mediaQW,
-          //   child: Container(
-          //     height: 0.008215962441314555 * mediaQH,
-          //     width: 0.06615776081424936 * mediaQW,
-          //     decoration: BoxDecoration(
-          //         color: const Color(0xffe7e7e7),
-          //         border: Border.all(color: const Color(0x00000000)),
-          //         borderRadius: const BorderRadius.only(
-          //           topLeft: Radius.circular(4),
-          //           topRight: Radius.circular(4),
-          //           bottomLeft: Radius.circular(4),
-          //           bottomRight: Radius.circular(4),
-          //         )),
-          //     alignment: Alignment.center,
-          //   ),
-          // ),
-          // Positioned(
-          //   top: 0.818075117370892 * mediaQH,
-          //   left: 0.49363867684478374 * mediaQW,
-          //   child: Container(
-          //     height: 0.008215962441314555 * mediaQH,
-          //     width: 0.183206106870229 * mediaQW,
-          //     decoration: BoxDecoration(
-          //         color: const Color(0xff2299c3),
-          //         border: Border.all(color: const Color(0x00000000)),
-          //         borderRadius: const BorderRadius.only(
-          //           topLeft: Radius.circular(4),
-          //           topRight: Radius.circular(4),
-          //           bottomLeft: Radius.circular(4),
-          //           bottomRight: Radius.circular(4),
-          //         )),
-          //     alignment: Alignment.center,
-          //   ),
-          // ),
         ]),
       ))),
     );

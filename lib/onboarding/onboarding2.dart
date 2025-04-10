@@ -35,55 +35,6 @@ class _Onboarding2State extends State<Onboarding2> {
               width: 1.0865139949109415 * mediaQW,
             ),
           ),
-          // Positioned(
-          //   top: 0.8568075117370892 * mediaQH,
-          //   left: 0.06615776081424936 * mediaQW,
-          //   child: Container(
-          //     height: 0.056338028169014086 * mediaQH,
-          //     width: 0.8676844783715013 * mediaQW,
-          //     decoration: BoxDecoration(
-          //         color: const Color(0xff2299c3),
-          //         border: Border.all(color: const Color(0x00000000)),
-          //         borderRadius: const BorderRadius.only(
-          //           topLeft: Radius.circular(6),
-          //           topRight: Radius.circular(6),
-          //           bottomLeft: Radius.circular(6),
-          //           bottomRight: Radius.circular(6),
-          //         )),
-          //     alignment: Alignment.center,
-          //   ),
-          // ),
-          // Positioned(
-          //   top: 0.8568075117370892 * mediaQH,
-          //   left: 0.06615776081424936 * mediaQW,
-          //   child: GestureDetector(
-          //     onTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (context) => const Onboarding3(),
-          //         ),
-          //       );
-          //     },
-          //     child: Container(
-          //       height: 0.056338028169014086 * mediaQH,
-          //       width: 0.8676844783715013 * mediaQW,
-          //       decoration: BoxDecoration(
-          //         color: const Color(0xff2299c3),
-          //         borderRadius: BorderRadius.circular(6),
-          //       ),
-          //       alignment: Alignment.center,
-          //       child: const Text(
-          //         "Next",
-          //         style: TextStyle(
-          //           color: Colors.white,
-          //           fontWeight: FontWeight.w600,
-          //           fontSize: 16,
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
           Positioned(
             top: 0.16314553990610328 * mediaQH,
             left: 0.10432569974554708 * mediaQW,
