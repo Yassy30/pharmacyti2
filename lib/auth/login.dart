@@ -66,7 +66,6 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-
                 // Username TextField
                 Positioned(
                   top: 0.396 * mediaQH,
@@ -88,7 +87,6 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-
                 // Password Label
                 Positioned(
                   top: 0.478 * mediaQH,

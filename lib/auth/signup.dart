@@ -258,6 +258,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/auth/login.dart';
+import 'package:pharmaciyti/onboarding/congratulations.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -338,7 +339,12 @@ class _SignUpState extends State<SignUp> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
-                  // Sign up logic here
+                  Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const Congratulations(),
+                                 ),
+                              );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xff2299c3),
