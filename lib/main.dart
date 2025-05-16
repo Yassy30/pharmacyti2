@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pharmaciyti/onboarding/onboarding1.dart';
 import 'package:pharmaciyti/onboarding/onboarding_wrapper.dart';
 import 'package:pharmaciyti/onboarding/whoareu.dart';
+import 'package:pharmaciyti/pharmacie/MainCont.dart';
+import 'package:pharmaciyti/pharmacie/order_screens.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +22,7 @@ class MyApp extends StatelessWidget {
       ),
       
       debugShowCheckedModeBanner: false,
-      home: const WhoAreYou(),
+      home:  MainContainer(),
     );
   }
 }
