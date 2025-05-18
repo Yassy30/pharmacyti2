@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pharmaciyti/pharmacie/Dashboard.dart';
 import 'package:pharmaciyti/pharmacie/Profile.dart';
 import 'package:pharmaciyti/pharmacie/order_screens.dart';
-import 'package:pharmaciyti/pharmacie/prescription_screens.dart';
 
 class MainContainer extends StatefulWidget {
   @override
@@ -15,7 +14,6 @@ class _MainContainerState extends State<MainContainer> {
   final List<Widget> _screens = [
     Dashboard(),
     OrderScreens(),
-    PrescriptionScreens(),
     Profile(),
   ];
   
@@ -36,7 +34,6 @@ class _MainContainerState extends State<MainContainer> {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), label: 'My Order'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Prescription'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
       ),
