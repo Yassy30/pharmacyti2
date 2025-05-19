@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/pharmacie/Dashboard.dart';
 import 'package:pharmaciyti/pharmacie/Profile.dart';
-import 'package:pharmaciyti/pharmacie/prescription_screens.dart';
+import 'package:pharmaciyti/pharmacie/order_details_screen.dart';
 
 class OrderScreens extends StatefulWidget {
   const OrderScreens({Key? key}) : super(key: key);
@@ -303,7 +303,17 @@ Widget _buildOrderCard(
               if (isPending) const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OrderDetailsScreen(
+                          orderId: orderId,
+                          isCompleted: status.toLowerCase() == 'completed',
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
