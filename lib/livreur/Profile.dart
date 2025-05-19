@@ -24,7 +24,7 @@ class Profile extends StatelessWidget {
               children: [
                 // Pharmacy Logo
                 Image.asset(
-                  'pharmacy_logo.png',
+                  'liv.png',
                   width: 70,
                   height: 70,
                   errorBuilder: (context, error, stackTrace) {
@@ -76,17 +76,12 @@ class Profile extends StatelessWidget {
                 Column(
                   children: [
                     Text(
-                      'Healthy Pharmacy',
+                      'Amine Livreur',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Pharmacy Shops',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'healthy@gmail.com',
+                      'rider@gmail.com',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
@@ -125,7 +120,7 @@ class Profile extends StatelessWidget {
           padding: EdgeInsets.all(8),
           child: Icon(
             icon,
-            color: isDestructive ? Colors.red : Colors.green,
+            color: isDestructive ? Colors.red : Colors.orange,
             size: 25,
           ),
         ),

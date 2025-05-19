@@ -79,8 +79,6 @@ class LivreurDashboard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Completed orders card - Navigate to Past Orders tab
-                  // Fix for line 86-87 in the GestureDetector onTap callback
                   GestureDetector(
                     onTap: () {
                       // Find the MainContainer state and use the navigateTo method

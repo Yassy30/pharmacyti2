@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/livreur/OrderDetailsScreen.dart';
 
 class LivreurOrderScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -129,7 +130,7 @@ class LivreurOrderScreenState extends State<LivreurOrderScreen> with SingleTicke
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Order ID:#7',
+                      'Order ID: #7',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -223,9 +224,20 @@ class LivreurOrderScreenState extends State<LivreurOrderScreen> with SingleTicke
                       ),
                     ),
                     SizedBox(width: 16),
+                    // For Current Orders tab - Update the Info button
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrderDetailsScreen(
+                                orderId: '7',
+                                isCompleted: false,
+                              ),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.amber,
                           foregroundColor: Colors.white,
@@ -237,6 +249,9 @@ class LivreurOrderScreenState extends State<LivreurOrderScreen> with SingleTicke
                         child: Text('Info'),
                       ),
                     ),
+                    
+                    // For Past Orders tab - Update the Info button
+    
                   ],
                 ),
               ],
@@ -248,8 +263,173 @@ class LivreurOrderScreenState extends State<LivreurOrderScreen> with SingleTicke
   }
 
   Widget _buildPastOrdersTab() {
-    return Center(
-      child: Text('No past orders'),
+    return Container(
+      color: Colors.grey[100],
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Order date and status
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '2023-04-27',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 18,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'Completed',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                
+                // Order ID and delivery status
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Order ID: #9',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Delivery',
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                
+                // Customer info and payment details
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.grey[200],
+                      radius: 20,
+                      child: Text(
+                        'C', 
+                        style: TextStyle(
+                          color: Colors.amber,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Cartena',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '1005-Apple square',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Razorpay',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          '\$658',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                
+                // Info button (single button for completed orders)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                       Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OrderDetailsScreen(
+                            orderId: '7',
+                            isCompleted: true,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text('Info'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
