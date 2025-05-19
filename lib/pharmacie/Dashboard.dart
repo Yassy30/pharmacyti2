@@ -3,6 +3,7 @@ import 'package:pharmaciyti/pharmacie/medcine.dart';
 import 'package:pharmaciyti/pharmacie/category.dart';
 import 'package:pharmaciyti/pharmacie/payment.dart';
 import 'package:pharmaciyti/utils/colors.dart';
+import 'earning.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -89,6 +90,12 @@ class _DashboardScreenState extends State<Dashboard> {
                     Icons.category_outlined,
                     AppColors.primaryGreen,
                     count: '6',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CategoryPage()),
+                      );
+                    },
                   ),
                   SizedBox(height: 16),
                   _buildDashboardItem(
@@ -96,6 +103,11 @@ class _DashboardScreenState extends State<Dashboard> {
                     Icons.payment_outlined,
                     AppColors.primaryGreen,
                     amount: '\$160',
+                    
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => PayPage()),
+                    ),
                   ),
                   SizedBox(height: 16),
                   _buildDashboardItem(
@@ -103,6 +115,10 @@ class _DashboardScreenState extends State<Dashboard> {
                     Icons.attach_money_outlined,
                     AppColors.primaryGreen,
                     amount: '\$668.9',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EarningsPage()),
+                    ),
                   ),
                 ],
               ),

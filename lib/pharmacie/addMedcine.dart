@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:pharmaciyti/utils/colors.dart';
 
 class AddMedicinePage extends StatefulWidget {
   @override
@@ -11,7 +11,6 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
   String? _imagePath;
   String? _title;
   String? _actualPrice;
-  String? _originalPrice;
   String? _category;
   String? _quantity;
   bool? _requiresPrescription = false;
@@ -19,16 +18,40 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
   String? _disclaimer;
   String? _status = 'Publish';
 
+  InputDecoration inputDecoration(String hintText) {
+    return InputDecoration(
+      hintText: hintText,
+      filled: true,
+      fillColor: AppColors.white,
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: AppColors.lightGrey, width: 1.2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: AppColors.primaryGreen, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.red, width: 1.5),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Add Medicine'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AppColors.lightGrey,
+        foregroundColor: AppColors.textBlack,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: AppColors.textBlack),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -38,13 +61,33 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Medicine Image'),
-                onSaved: (value) => _imagePath = value,
+              Text(
+                'Medicine Image',
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textBlack),
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 8),
+              GestureDetector(
+                onTap: () {
+                  // TODO: Implement image picker
+                },
+                child: Container(
+                  height: 70,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primaryGreen, width: 1.2),
+                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.white,
+                  ),
+                  child: Center(
+                    child: Icon(Icons.image_outlined, color: AppColors.primaryGreen, size: 32),
+                  ),
+                ),
+              ),
+              SizedBox(height: 18),
+
+              Text('Medicine Title', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Medicine Title'),
+                decoration: inputDecoration('Enter Medicine Title'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a medicine title';
@@ -53,9 +96,12 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
                 },
                 onSaved: (value) => _title = value,
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 16),
+
+              Text('Medicine Actual Price', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Enter Actual Price'),
+                decoration: inputDecoration('Enter Medicine Actual Price'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -65,120 +111,88 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
                 },
                 onSaved: (value) => _actualPrice = value,
               ),
-              SizedBox(height: 16.0),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Enter Original Price'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an original price';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _originalPrice = value,
-              ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 16),
+
+              Text('Medicine Category', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Select Category'),
+                decoration: inputDecoration('Select Category'),
                 items: ['Dandruff', 'Pain relief', 'Vaccines', 'Allergies', 'Bacterial Infections']
-                    .map((category) => DropdownMenuItem(
-                          value: category,
-                          child: Text(category),
-                        ))
+                    .map((category) => DropdownMenuItem(value: category, child: Text(category)))
                     .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _category = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a category';
-                  }
-                  return null;
-                },
+                onChanged: (value) => setState(() => _category = value),
+                validator: (value) => value == null ? 'Please select a category' : null,
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 16),
+
+              Text('Medicine Quantity Limit', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Enter Medicine Quantity Limit'),
+                decoration: inputDecoration('Enter Medicine Quantity Limit'),
                 keyboardType: TextInputType.number,
                 onSaved: (value) => _quantity = value,
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 16),
+
+              Text('Medicine Required Prescription?', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               DropdownButtonFormField<bool>(
-                decoration: InputDecoration(labelText: 'Medicine Required Prescription?'),
-                items: [true, false]
-                    .map((prescription) => DropdownMenuItem(
-                          value: prescription,
-                          child: Text(prescription ? 'Yes' : 'No'),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _requiresPrescription = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select an option';
-                  }
-                  return null;
-                },
+                decoration: inputDecoration('Select'),
+                items: [true, false].map((val) => DropdownMenuItem(value: val, child: Text(val ? 'Yes' : 'No'))).toList(),
+                onChanged: (value) => setState(() => _requiresPrescription = value),
+                validator: (value) => value == null ? 'Please select an option' : null,
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 16),
+
+              Text('Medicine Description', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Medicine Description'),
+                decoration: inputDecoration('Add Medicine Description..'),
                 maxLines: 3,
                 onSaved: (value) => _description = value,
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 16),
+
+              Text('Medicine Disclaimer', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Medicine Disclaimer'),
+                decoration: inputDecoration('Add Disclaimer'),
                 maxLines: 3,
                 onSaved: (value) => _disclaimer = value,
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 16),
+
+              Text('Medicine Status', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Medicine Status'),
-                items: ['Publish', 'Draft']
-                    .map((status) => DropdownMenuItem(
-                          value: status,
-                          child: Text(status),
-                        ))
-                    .toList(),
+                decoration: inputDecoration('Select Status'),
                 value: _status,
-                onChanged: (value) {
-                  setState(() {
-                    _status = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a status';
-                  }
-                  return null;
-                },
+                items: ['Publish', 'Draft'].map((status) => DropdownMenuItem(value: status, child: Text(status))).toList(),
+                onChanged: (value) => setState(() => _status = value),
+                validator: (value) => value == null ? 'Please select a status' : null,
               ),
-              SizedBox(height: 32.0),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Medicine ${_title} added with status ${_status}')),
-                    );
-                    Navigator.pop(context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.0),
+              SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Medicine $_title added with status $_status')),
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryGreen,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
                   ),
+                  child: Text('Update', style: TextStyle(fontSize: 16.0)),
                 ),
-                child: Text('Update', style: TextStyle(fontSize: 16.0)),
               ),
             ],
           ),
