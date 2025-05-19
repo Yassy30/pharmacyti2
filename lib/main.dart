@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/livreur/MainContainer.dart';
 import 'package:pharmaciyti/onboarding/onboarding1.dart';
 import 'package:pharmaciyti/onboarding/onboarding_wrapper.dart';
 import 'package:pharmaciyti/onboarding/whoareu.dart';
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
       ),
       
       debugShowCheckedModeBanner: false,
-      home:  MainContainer(),
+      home:  LivreurMainContainer(),
     );
   }
 }
