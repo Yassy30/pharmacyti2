@@ -58,10 +58,17 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/pharmacy_logo.png
+    - assets/images/liv.png
+    - assets/images/a_gen_cream.jpeg
+    - assets/images/eclo_ointment.jpeg
+    - assets/images/pharmacy_logo.png
+    - assets/images/triphala.jpeg
 
   # To add assets to your application, add an assets section, like this:
-    
+  # assets:
+  #   - assets/pharmacy_logo.png
+  #   - assets/liv.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
