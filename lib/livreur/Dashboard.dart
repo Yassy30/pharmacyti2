@@ -37,7 +37,7 @@ class LivreurDashboard extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Cscodetech',
+                      'Amine Livreur',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,

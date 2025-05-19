@@ -24,7 +24,7 @@ class Profile extends StatelessWidget {
               children: [
                 // Pharmacy Logo
                 Image.asset(
-                  'liv.png',
+                  'images/liv.png',
                   width: 70,
                   height: 70,
                   errorBuilder: (context, error, stackTrace) {
