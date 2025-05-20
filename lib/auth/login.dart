@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/auth/signup.dart';
+import 'package:pharmaciyti/onboarding/whoareu.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -28,31 +29,17 @@ class _LoginState extends State<Login> {
             width: mediaQW,
             child: Stack(
               children: [
+                // Centered Image
                 Positioned(
-                  top: 0.10446009389671361 * mediaQH,
-                  left: 0.356234096692112 * mediaQW,
-                  child: Image.network(
-                    "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1db8bd93-ea72-4e0d-893f-58ee79cdd9c6",
-                    height: 0.13262910798122066 * mediaQH,
-                    width: 0.2875318066157761 * mediaQW,
+                  top: 0.07 * mediaQH,
+                  left: 0, // Remove fixed left position
+                  right: 0, // Add right: 0
+                  child: Center( // Wrap with Center widget
+                    child: Image.asset("assets/images/auth.png"),
                   ),
                 ),
 
-                Positioned(
-                  top: 0.23708920187793428 * mediaQH,
-                  left: 0.23918575063613232 * mediaQW,
-                  child: SizedBox(
-                    width: 0.5216284987277354 * mediaQW,
-                    child: Text(
-                      "   Welcome to  PHARMACYTI",
-                      style: const TextStyle(
-                        color: Color(0xff000000),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 26,
-                      ),
-                    ),
-                  ),
-                ),
+                
                 // Username Label
                 Positioned(
                   top: 0.36 * mediaQH,
@@ -135,19 +122,6 @@ class _LoginState extends State<Login> {
                   ),
                 ),
 
-                // Forgot Password
-                Positioned(
-                  top: 0.577 * mediaQH,
-                  left: 0.066 * mediaQW,
-                  child: const Text(
-                    "Forgot password?",
-                    style: TextStyle(
-                      color: Color(0xff2299c3),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
 
                 // Login Button
                 Positioned(
@@ -169,6 +143,14 @@ class _LoginState extends State<Login> {
                         String password = _passwordController.text;
                         print('Username: $username');
                         print('Password: $password');
+                        
+                        // Navigate to the WhoAreYou page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WhoAreYou(),
+                          ),
+                        );
                       },
                       child: const Text(
                         "Login",
