@@ -1,0 +1,2 @@
+C:/Users/hp/flutterProject/pharmacyti2/android/app/.cxx/Debug/5f235d59/x86/CMakeFiles/edit_cache.dir
+C:/Users/hp/flutterProject/pharmacyti2/android/app/.cxx/Debug/5f235d59/x86/CMakeFiles/rebuild_cache.dir
