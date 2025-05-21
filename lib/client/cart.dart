@@ -42,6 +42,7 @@ class _CartPageState extends State<CartPage> {
   ];
 
   bool selectAll = false;
+  bool prescriptionSelected = false;  // Add this line
 
   @override
   void initState() {
@@ -50,7 +51,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   void _updateSelectAll() {
-    selectAll = cartItems.every((item) => item.isSelected);
+    selectAll = cartItems.every((item) => item.isSelected) && prescriptionSelected;
   }
 
   double get subtotal {
@@ -98,6 +99,7 @@ class _CartPageState extends State<CartPage> {
                   onChanged: (value) {
                     setState(() {
                       selectAll = value ?? false;
+                      prescriptionSelected = selectAll; // Add this line
                       for (var item in cartItems) {
                         item.isSelected = selectAll;
                       }
@@ -142,8 +144,13 @@ class _CartPageState extends State<CartPage> {
                             ),
                           ),
                           Checkbox(
-                            value: false,
-                            onChanged: (value) {},
+                            value: prescriptionSelected,
+                            onChanged: (value) {
+                              setState(() {
+                                prescriptionSelected = value ?? false;
+                              });
+                            },
+                            activeColor: Colors.blue,  // Add this line
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -284,7 +291,7 @@ class _CartPageState extends State<CartPage> {
               onChanged: (value) {
                 setState(() {
                   item.isSelected = value ?? false;
-                  _updateSelectAll();
+                  _updateSelectAll(); // Update the "All" checkbox state
                 });
               },
               activeColor: Colors.blue,
