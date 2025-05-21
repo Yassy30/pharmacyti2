@@ -12,71 +12,80 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  
+
   // List of screens to navigate between
   final List<Widget> _screens = [];
-  
+
   @override
   void initState() {
     super.initState();
     // Initialize the screens list
     _screens.addAll([
-      _buildHomeContent(),  // Home screen content
-      SearchPage(),         // Search page
-      CartPage(),           // Cart page
-      ProfilePage()         // Profile page
+      _buildHomeContent(), // Home screen content
+      SearchPage(), // Search page
+      CartPage(), // Cart page
+      ProfilePage() // Profile page
     ]);
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _screens[_selectedIndex],  // Display the selected screen
+      body: _screens[_selectedIndex], // Display the selected screen
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)), // Grander radius
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: Offset(0, -1),
+              color: Colors.black12,
+              blurRadius: 10, // Stronger shadow
+              offset: Offset(0, -3),
             ),
           ],
         ),
         child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: Colors.blue[700], // Bolder color
+          unselectedItemColor: Colors.grey[600],
           currentIndex: _selectedIndex,
           onTap: (index) {
             setState(() {
               _selectedIndex = index;
             });
           },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
+          showUnselectedLabels: true,
+          selectedFontSize: screenWidth * 0.035, // Larger font
+          unselectedFontSize: screenWidth * 0.03,
           items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
+              icon: Icon(Icons.home_outlined, size: screenWidth * 0.07),
+              label: "Home",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: 'Search',
+              icon: Icon(Icons.search,
+                  color: _selectedIndex == 1 ? Colors.blue[700] : Colors.grey[600],
+                  size: screenWidth * 0.07),
+              label: "Search",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart),
-              label: 'Cart',
+              icon: Icon(Icons.shopping_cart_outlined, size: screenWidth * 0.07),
+              label: "Cart",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
+              icon: Icon(Icons.person_outline, size: screenWidth * 0.07),
+              label: "Profile",
             ),
           ],
         ),
       ),
     );
   }
-  
+
   // Home screen content builder
   Widget _buildHomeContent() {
     return SafeArea(
@@ -172,7 +181,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            
             // Categories section
             Padding(
               padding: const EdgeInsets.only(left: 16.0, top: 24.0, bottom: 8.0),
@@ -181,7 +189,6 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-            
             // Categories horizontal list
             SizedBox(
               height: 90,
@@ -197,7 +204,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            
             // Promotional banner
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -252,7 +258,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            
             // Pagination dots
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -285,7 +290,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            
             // Pharmacies Near You section
             Padding(
               padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24.0, bottom: 8.0),
@@ -303,7 +307,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            
             // Pharmacy list
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -320,7 +323,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   // Helper method to build category items
   Widget _buildCategoryItem(String title, String imagePath) {
     return Container(
@@ -353,7 +356,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   // Helper method to build pharmacy items
   Widget _buildPharmacyItem(String name, String rating, String address, String distance, bool isOpen) {
     return Container(
