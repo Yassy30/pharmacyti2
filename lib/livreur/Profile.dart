@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/auth/login.dart';
 import 'package:pharmaciyti/livreur/ProfileInfos.dart';
 
 class Profile extends StatelessWidget {
@@ -138,7 +139,7 @@ class Profile extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 246, 241, 241), // Lighter grey background matching the image
+        color: const Color.fromARGB(255, 246, 241, 241),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -159,12 +160,15 @@ class Profile extends StatelessWidget {
           ),
         ),
         trailing: Icon(Icons.chevron_right, size: 24, color: Colors.black),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         onTap: () {
-          // Handle menu item tap
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title tapped')),
-          );
+          if (title == 'Logout') {
+            // Navigate to login page and remove all previous routes
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => Login()),
+              (route) => false,
+            );
+          }
         },
       ),
     );
