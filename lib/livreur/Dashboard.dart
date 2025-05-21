@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/auth/login.dart';
 import 'package:pharmaciyti/livreur/OrderScreen.dart';
 import 'package:pharmaciyti/livreur/MainContainer.dart';
 
@@ -47,9 +48,18 @@ class LivreurDashboard extends StatelessWidget {
                 ),
                 CircleAvatar(
                   backgroundColor: Colors.orange.withOpacity(0.1),
-                  child: Icon(
-                    Icons.logout,
-                    color: Colors.orange,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => Login()),
+                        (route) => false,
+                      );
+                    },
+                    child: Icon(
+                      Icons.logout,
+                      color: Colors.orange,
+                    ),
                   ),
                 ),
               ],

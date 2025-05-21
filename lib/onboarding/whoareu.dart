@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/client/InfosClient.dart';
+import 'package:pharmaciyti/client/congratulations.dart';
+import 'package:pharmaciyti/livreur/InfosLiv.dart';
+import 'package:pharmaciyti/livreur/congratsliv.dart';
+import 'package:pharmaciyti/pharmacie/Infosph.dart';
+import 'package:pharmaciyti/pharmacie/congratsph.dart';
 
 class WhoAreYou extends StatefulWidget {
   const WhoAreYou({super.key});
@@ -8,108 +14,169 @@ class WhoAreYou extends StatefulWidget {
 }
 
 class _WhoAreYouState extends State<WhoAreYou> {
+  String? selectedRole;
+
   @override
   void initState() {
     super.initState();
   }
 
+  void selectRole(String role) {
+    setState(() {
+      selectedRole = role;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    double mediaQH = MediaQuery.of(context).size.height;
-    double mediaQW = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: Color(0xffffffff),
+      backgroundColor: Colors.white,
       body: SafeArea(
-          child: SingleChildScrollView(
-              child: SizedBox(
-        height: mediaQH,
-        width: mediaQW,
-        child: Stack(children: [
-          
-          
-          Positioned(
-            top: 0.16314553990610328 * mediaQH,
-            left: 0.30025445292620867 * mediaQW,
-            child: SizedBox(
-              width: 0.3944020356234097 * mediaQW,
-              child: Text(
-                "Who are you ?",
-                style: const TextStyle(
-                  color: Color(0xff000000),
-                  fontWeight: FontWeight.w900,
-                  fontSize: 27,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 50),
+                const Text(
+                  "Who are you ?",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 27,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildRoleOption(
+                      title: "Client",
+                      imagePath: "assets/images/client.png", 
+                      role: "client",
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildRoleOption(
+                      title: "Pharmacy",
+                      imagePath: "assets/images/pharmacie.png",
+                      role: "pharmacy",
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildRoleOption(
+                      title: "Delivery guy",
+                      imagePath: "assets/images/livreur.png",
+                      role: "delivery",
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                if (selectedRole != null)
+                  ElevatedButton(
+                    onPressed: () {
+                      if (selectedRole == "client") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InfosClient(),
+                          ),
+                        );
+                      } else if (selectedRole == "pharmacy") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Infosph(),
+                          ),
+                        );
+                      } else if (selectedRole == "delivery") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InfosLiv(),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Continue",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleOption({
+    required String title,
+    required String imagePath,
+    required String role,
+  }) {
+    bool isSelected = selectedRole == role;
+    
+    return GestureDetector(
+      onTap: () => selectRole(role),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? Colors.blue : Colors.grey.shade300,
+                width: isSelected ? 2 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.contain,
               ),
             ),
           ),
-          Positioned(
-            top: 0.22652582159624413 * mediaQH,
-            left: 0.27735368956743 * mediaQW,
-            child: Image.network(
-              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3a3db539-d130-4a08-a3f5-e59796c0bcff",
-              height: 0.20305164319248825 * mediaQH,
-              width: 0.4402035623409669 * mediaQW,
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+              fontSize: 18,
             ),
           ),
-          Positioned(
-            top: 0.24647887323943662 * mediaQH,
-            left: 0.32061068702290074 * mediaQW,
-            child: Image.network(
-              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ada39252-07cb-4ad8-9c5f-a4788d8bf229",
-              height: 0.1643192488262911 * mediaQH,
-              width: 0.356234096692112 * mediaQW,
-            ),
-          ),
-          Positioned(
-            top: 0.44366197183098594 * mediaQH,
-            left: 0.27735368956743 * mediaQW,
-            child: SizedBox(
-              width: 0.4402035623409669 * mediaQW,
-              child: Text(
-                "Pharmacy",
-                style: const TextStyle(
-                  color: Color(0xff000000),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 0.5446009389671361 * mediaQH,
-            left: 0.27735368956743 * mediaQW,
-            child: Image.network(
-              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/871dbe22-d2c5-4afc-bbf8-dcc956fa50f2",
-              height: 0.20305164319248825 * mediaQH,
-              width: 0.4402035623409669 * mediaQW,
-            ),
-          ),
-          Positioned(
-            top: 0.5645539906103286 * mediaQH,
-            left: 0.32061068702290074 * mediaQW,
-            child: Image.network(
-              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/19340095-11a0-4986-8ce7-a24a74d8e95a",
-              height: 0.1643192488262911 * mediaQH,
-              width: 0.356234096692112 * mediaQW,
-            ),
-          ),
-          Positioned(
-            top: 0.7617370892018779 * mediaQH,
-            left: 0.27735368956743 * mediaQW,
-            child: SizedBox(
-              width: 0.4402035623409669 * mediaQW,
-              child: Text(
-                "Client",
-                style: const TextStyle(
-                  color: Color(0xff000000),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ),
-        ]),
-      ))),
+        ],
+      ),
     );
   }
 }

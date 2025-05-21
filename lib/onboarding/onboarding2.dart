@@ -27,14 +27,13 @@ class _Onboarding2State extends State<Onboarding2> {
         width: mediaQW,
         child: Stack(children: [
           Positioned(
-            top: 0.24061032863849766 * mediaQH,
-            left: -0.043256997455470736 * mediaQW,
-            child: Image.network(
-              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/9ac095c3-b085-4e1c-8b53-76604a92d4f3",
-              height: 0.5011737089201878 * mediaQH,
-              width: 1.0865139949109415 * mediaQW,
+             top: 0.3039906103286385 * mediaQH,
+            left: 0, // Remove the left positioning
+            right: 0,
+            child: Center( // Wrap with Center widget
+              child: Image.asset("assets/images/onboard2.png"),
+            ),        
             ),
-          ),
           Positioned(
             top: 0.16314553990610328 * mediaQH,
             left: 0.10432569974554708 * mediaQW,

@@ -60,12 +60,11 @@ class _GetStartedState extends State<GetStarted> {
                 ),
                 Positioned(
                   top: 0.3227699530516432 * mediaQH,
-                  left: 0.06870229007633588 * mediaQW,
-                  child: Image.network(
-                    "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/95ee9fc6-e498-483a-8915-d6012627b01c",
-                    height: 0.39906103286384975 * mediaQH,
-                    width: 0.8651399491094147 * mediaQW,
-                  ),
+                  left: 0,
+                  right: 0,
+                  child: Center( 
+                 child: Image.asset("assets/images/GetStarted.png"),
+                  ),      
                 ),
                 // Login Button
                 Positioned(

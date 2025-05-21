@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/pharmacie/MainCont.dart';
+import 'package:pharmaciyti/utils/colors.dart';
+import 'package:pharmaciyti/pharmacie/Dashboard.dart'; // Add this import
 
-class Congratulations extends StatefulWidget {
-  const Congratulations({super.key});
+class Congratsph extends StatefulWidget {
+  const Congratsph({super.key});
 
   @override
-  State<Congratulations> createState() => _CongratulationsState();
+  State<Congratsph> createState() => _CongratulationsState();
 }
 
-class _CongratulationsState extends State<Congratulations> {
+class _CongratulationsState extends State<Congratsph> {
   @override
   void initState() {
     super.initState();
@@ -59,19 +62,29 @@ class _CongratulationsState extends State<Congratulations> {
                   bottom: 0.05 * mediaQH, 
                   left: 0.06615776081424936 * mediaQW,
                   right: 0.06615776081424936 * mediaQW,
-                  child: Container(
-                    height: 0.056338028169014086 * mediaQH,
-                    decoration: BoxDecoration(
-                      color: const Color(0xff2299c3),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      "Done",
-                      style: const TextStyle(
-                        color: Color(0xffffffff),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
+                  child: GestureDetector( // Wrap with GestureDetector
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MainContainer(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      height: 0.056338028169014086 * mediaQH,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGreen,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        "Done",
+                        style: const TextStyle(
+                          color: Color(0xffffffff),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
