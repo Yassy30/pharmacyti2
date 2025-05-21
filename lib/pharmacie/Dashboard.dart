@@ -16,138 +16,144 @@ class _DashboardScreenState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      body: Column(
-        children: [
-          // Welcome section with light background
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hello, Welcome Back',
-                      style: TextStyle(
-                        color: AppColors.textGrey,
-                        fontSize: 12,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Healthy Pharmacy',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ],
-                ),
-                CircleAvatar(
-                  backgroundColor: AppColors.primaryGreen.withOpacity(0.1),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => Login()),
-                        (route) => false,
-                      );
-                    },
-                    child: Icon(
-                      Icons.logout_outlined,
-                      color: AppColors.primaryGreen,
-                    ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Welcome section with light background
+            Container(
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: Offset(0, 2),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // Main content
-          Expanded(
-            child: Container(
-              color: AppColors.lightGrey,
-              padding: EdgeInsets.all(16),
-              child: ListView(
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildDashboardItem(
-                    'Medicine',
-                    Icons.medical_services_outlined,
-                    AppColors.primaryGreen,
-                    count: '8',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => MedicinePage()),
-                      );
-                    },
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hello, Welcome Back',
+                        style: TextStyle(
+                          color: AppColors.textGrey,
+                          fontSize: screenWidth * 0.03,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.01),
+                      Text(
+                        'Healthy Pharmacy',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenWidth * 0.045,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 16),
-                  _buildDashboardItem(
-                    'Category',
-                    Icons.category_outlined,
-                    AppColors.primaryGreen,
-                    count: '6',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CategoryPage()),
-                      );
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  _buildDashboardItem(
-                    'Payout',
-                    Icons.payment_outlined,
-                    AppColors.primaryGreen,
-                    amount: '\$160',
-                    
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => PayPage()),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  _buildDashboardItem(
-                    'Earning',
-                    Icons.attach_money_outlined,
-                    AppColors.primaryGreen,
-                    amount: '\$668.9',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => EarningsPage()),
+                  CircleAvatar(
+                    radius: screenWidth * 0.06,
+                    backgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => Login()),
+                          (route) => false,
+                        );
+                      },
+                      child: Icon(
+                        Icons.logout_outlined,
+                        color: AppColors.primaryGreen,
+                        size: screenWidth * 0.06,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            // Main content
+            Expanded(
+              child: Container(
+                color: AppColors.lightGrey,
+                padding: EdgeInsets.all(screenWidth * 0.02),
+                child: ListView(
+                  children: [
+                    _buildDashboardItem(
+                      'Medicine',
+                      Icons.medical_services_outlined,
+                      AppColors.primaryGreen,
+                      count: '8',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => MedicinePage()),
+                        );
+                      },
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                    _buildDashboardItem(
+                      'Category',
+                      Icons.category_outlined,
+                      AppColors.primaryGreen,
+                      count: '6',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CategoryPage()),
+                        );
+                      },
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                    _buildDashboardItem(
+                      'Payout',
+                      Icons.payment_outlined,
+                      AppColors.primaryGreen,
+                      amount: '\$160',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PayPage()),
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                    _buildDashboardItem(
+                      'Earning',
+                      Icons.attach_money_outlined,
+                      AppColors.primaryGreen,
+                      amount: '\$668.9',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => EarningsPage()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-     
-       
-      
     );
   }
 
   Widget _buildDashboardItem(String title, IconData icon, Color color,
       {String? count, String? amount, VoidCallback? onTap}) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(screenWidth * 0.04),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(8),
@@ -163,7 +169,7 @@ class _DashboardScreenState extends State<Dashboard> {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.all(screenWidth * 0.025),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -171,10 +177,10 @@ class _DashboardScreenState extends State<Dashboard> {
               child: Icon(
                 icon,
                 color: color,
-                size: 24,
+                size: screenWidth * 0.06,
               ),
             ),
-            SizedBox(width: 16),
+            SizedBox(width: screenWidth * 0.04),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -182,15 +188,15 @@ class _DashboardScreenState extends State<Dashboard> {
                   title,
                   style: TextStyle(
                     color: AppColors.textGrey,
-                    fontSize: 14,
+                    fontSize: screenWidth * 0.035,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: screenHeight * 0.01),
                 Text(
                   count ?? amount ?? '',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: screenWidth * 0.045,
                   ),
                 ),
               ],
