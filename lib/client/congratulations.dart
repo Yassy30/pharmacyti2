@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/client/HomePage.dart';
 
 class Congratulations extends StatefulWidget {
   const Congratulations({super.key});
@@ -59,19 +60,27 @@ class _CongratulationsState extends State<Congratulations> {
                   bottom: 0.05 * mediaQH, 
                   left: 0.06615776081424936 * mediaQW,
                   right: 0.06615776081424936 * mediaQW,
-                  child: Container(
-                    height: 0.056338028169014086 * mediaQH,
-                    decoration: BoxDecoration(
-                      color: const Color(0xff2299c3),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      "Done",
-                      style: const TextStyle(
-                        color: Color(0xffffffff),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage()),
+                      );
+                    },
+                    child: Container(
+                      height: 0.056338028169014086 * mediaQH,
+                      decoration: BoxDecoration(
+                        color: const Color(0xff2299c3),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        "Done",
+                        style: const TextStyle(
+                          color: Color(0xffffffff),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),

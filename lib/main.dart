@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/auth/login.dart';
 import 'package:pharmaciyti/auth/signup.dart';
+import 'package:pharmaciyti/client/HomePage.dart';
+import 'package:pharmaciyti/livreur/InfosLiv.dart';
 import 'package:pharmaciyti/livreur/MainContainer.dart';
 import 'package:pharmaciyti/onboarding/onboarding1.dart';
 import 'package:pharmaciyti/onboarding/onboarding2.dart';
 import 'package:pharmaciyti/onboarding/onboarding3.dart';
 import 'package:pharmaciyti/onboarding/onboarding_wrapper.dart';
 import 'package:pharmaciyti/onboarding/whoareu.dart';
+import 'package:pharmaciyti/pharmacie/Infosph.dart';
 import 'package:pharmaciyti/pharmacie/MainCont.dart';
 import 'package:pharmaciyti/pharmacie/order_screens.dart';
 
@@ -27,7 +30,7 @@ class MyApp extends StatelessWidget {
       ),
       
       debugShowCheckedModeBanner: false,
-      home:  WhoAreYou(),
+      home:  Login(),
     );
   }
 }

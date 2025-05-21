@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/auth/login.dart';
 import 'package:pharmaciyti/pharmacie/medcine.dart';
 import 'package:pharmaciyti/pharmacie/category.dart';
 import 'package:pharmaciyti/pharmacie/payment.dart';
@@ -56,9 +57,18 @@ class _DashboardScreenState extends State<Dashboard> {
                 ),
                 CircleAvatar(
                   backgroundColor: AppColors.primaryGreen.withOpacity(0.1),
-                  child: Icon(
-                    Icons.logout_outlined,
-                    color: AppColors.primaryGreen,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => Login()),
+                        (route) => false,
+                      );
+                    },
+                    child: Icon(
+                      Icons.logout_outlined,
+                      color: AppColors.primaryGreen,
+                    ),
                   ),
                 ),
               ],

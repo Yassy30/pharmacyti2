@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/client/InfosClient.dart';
 import 'package:pharmaciyti/client/congratulations.dart';
+import 'package:pharmaciyti/livreur/InfosLiv.dart';
 import 'package:pharmaciyti/livreur/congratsliv.dart';
+import 'package:pharmaciyti/pharmacie/Infosph.dart';
 import 'package:pharmaciyti/pharmacie/congratsph.dart';
 
 class WhoAreYou extends StatefulWidget {
@@ -86,21 +89,21 @@ class _WhoAreYouState extends State<WhoAreYou> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const Congratulations(),
+                            builder: (context) => const InfosClient(),
                           ),
                         );
                       } else if (selectedRole == "pharmacy") {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const Congratsph(),
+                            builder: (context) => const Infosph(),
                           ),
                         );
                       } else if (selectedRole == "delivery") {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const Congratsliv(),
+                            builder: (context) => const InfosLiv(),
                           ),
                         );
                       }

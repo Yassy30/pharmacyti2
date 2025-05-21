@@ -60,8 +60,11 @@ class _GetStartedState extends State<GetStarted> {
                 ),
                 Positioned(
                   top: 0.3227699530516432 * mediaQH,
-                  left: 0.06870229007633588 * mediaQW,
-                  child: Image.asset("assets/images/GetStarted.png"),
+                  left: 0,
+                  right: 0,
+                  child: Center( 
+                 child: Image.asset("assets/images/GetStarted.png"),
+                  ),      
                 ),
                 // Login Button
                 Positioned(
