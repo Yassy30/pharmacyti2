@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/auth/login.dart';
 import 'search.dart';
 import 'cart.dart';
 import 'profile.dart';
@@ -139,10 +140,17 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  // Notification icon
+                  // logout icon
                   IconButton(
                     icon: Icon(Icons.logout_outlined, color: Colors.blue),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const Login(),
+                                 ),
+                              );
+                    },
                   ),
                 ],
               ),

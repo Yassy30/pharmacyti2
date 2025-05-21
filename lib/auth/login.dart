@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/auth/signup.dart';
+import 'package:pharmaciyti/client/HomePage.dart';
 import 'package:pharmaciyti/onboarding/whoareu.dart';
 
 class Login extends StatefulWidget {
@@ -148,7 +149,7 @@ class _LoginState extends State<Login> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const WhoAreYou(),
+                            builder: (context) => const HomePage(),
                           ),
                         );
                       },

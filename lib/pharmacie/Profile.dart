@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/pharmacie/ProfileInfos.dart';
 
 class Profile extends StatelessWidget {
   @override
@@ -20,73 +21,98 @@ class Profile extends StatelessWidget {
           // Pharmacy Logo and Info
           Padding(
             padding: EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Pharmacy Logo
-                Image.asset(
-                  'pharmacy_logo.png',
-                  width: 70,
-                  height: 70,
-                  errorBuilder: (context, error, stackTrace) {
-                    // Fallback if image is not found
-                    return Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.blue.shade100,
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileInfos()),
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Positioned(
-                            left: 10,
-                            top: 15,
-                            child: Icon(Icons.person, color: Colors.green, size: 30),
+                          // Pharmacy Logo
+                          Image.asset(
+                            'images/pharmacy_logo.png',
+                            width: 70,
+                            height: 70,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Fallback if image is not found
+                              return Container(
+                                width: 70,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.blue.shade100,
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Positioned(
+                                      left: 10,
+                                      top: 15,
+                                      child: Icon(Icons.person, color: Colors.green, size: 30),
+                                    ),
+                                    Positioned(
+                                      right: 10,
+                                      bottom: 15,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.green,
+                                        ),
+                                        child: Icon(Icons.check, color: Colors.white, size: 20),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 10,
+                                      top: 15,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.blue,
+                                        ),
+                                        child: Icon(Icons.add, color: Colors.white, size: 20),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          Positioned(
-                            right: 10,
-                            bottom: 15,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.green,
+                          SizedBox(height: 16),
+                          // Pharmacy Info Column
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Healthy pharmacie',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              child: Icon(Icons.check, color: Colors.white, size: 20),
-                            ),
-                          ),
-                          Positioned(
-                            right: 10,
-                            top: 15,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.blue,
+                              SizedBox(height: 4),
+                              Text(
+                                'healthypharma@gmail.com',
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
                               ),
-                              child: Icon(Icons.add, color: Colors.white, size: 20),
-                            ),
+                              
+                            ],
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-                SizedBox(height: 16),
-                // Pharmacy Info Column
-                Column(
-                  children: [
-                    Text(
-                      'Amine Livreur',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'rider@gmail.com',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
+                    Icon(Icons.arrow_forward_ios, color: Colors.grey),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
           
@@ -120,7 +146,7 @@ class Profile extends StatelessWidget {
           padding: EdgeInsets.all(8),
           child: Icon(
             icon,
-            color: isDestructive ? Colors.red : Colors.orange,
+            color: isDestructive ? Colors.red : Colors.green,
             size: 25,
           ),
         ),

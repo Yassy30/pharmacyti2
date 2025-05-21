@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/auth/login.dart';
 import 'package:pharmaciyti/client/congratulations.dart';
+import 'package:pharmaciyti/onboarding/whoareu.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -72,7 +73,7 @@ class _SignUpState extends State<SignUp> {
                   Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const Congratulations(),
+                                  builder: (context) => const WhoAreYou(),
                                  ),
                               );
                 },
