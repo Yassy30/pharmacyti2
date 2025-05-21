@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/client/cart.dart';
+import 'AddCard.dart';
 
 class CheckoutPage extends StatefulWidget {
   final double subtotal;
@@ -356,7 +357,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     Spacer(),
                     TextButton(
                       onPressed: () {
-                        // Handle add new card
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddCardPage(),
+                          ),
+                        );
                       },
                       child: Text('+ Add a new card'),
                     ),
