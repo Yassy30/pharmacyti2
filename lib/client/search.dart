@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  final String initialQuery;
+
+  const SearchPage({Key? key, this.initialQuery = ''}) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  // State variables
-  String _searchQuery = ''; // To store the search input
-  String? _selectedFilter; // To track the selected filter
+  late String _searchQuery;
+  String? _selectedFilter;
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchQuery = widget.initialQuery;
+    _controller = TextEditingController(text: _searchQuery);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Get screen size for responsive design
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -23,20 +37,19 @@ class _SearchPageState extends State<SearchPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Search bar and filter icon
             Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.04, // Slightly larger padding
+                horizontal: screenWidth * 0.04,
                 vertical: screenHeight * 0.02,
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: Container(
-                      height: screenHeight * 0.07, // Larger search bar
+                      height: screenHeight * 0.07,
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(30), // More rounded
+                        borderRadius: BorderRadius.circular(30),
                         border: Border.all(color: Colors.grey[300]!, width: 1.5),
                         boxShadow: [
                           BoxShadow(
@@ -49,17 +62,15 @@ class _SearchPageState extends State<SearchPage> {
                       child: Row(
                         children: [
                           Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: screenWidth * 0.03),
-                            child: Icon(Icons.search,
-                                color: Colors.grey[600],
-                                size: screenWidth * 0.07), // Larger icon
+                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
+                            child: Icon(Icons.search, color: Colors.grey[600], size: screenWidth * 0.07),
                           ),
                           Expanded(
                             child: TextField(
+                              controller: _controller,
                               onChanged: (value) {
                                 setState(() {
-                                  _searchQuery = value; // Update search query
+                                  _searchQuery = value;
                                 });
                               },
                               decoration: InputDecoration(
@@ -67,10 +78,9 @@ class _SearchPageState extends State<SearchPage> {
                                 hintStyle: TextStyle(color: Colors.grey[500]),
                                 border: InputBorder.none,
                                 isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                    vertical: screenHeight * 0.015),
+                                contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
                               ),
-                              style: TextStyle(fontSize: screenWidth * 0.045), // Larger font
+                              style: TextStyle(fontSize: screenWidth * 0.045),
                             ),
                           ),
                         ],
@@ -79,11 +89,11 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   SizedBox(width: screenWidth * 0.03),
                   Container(
-                    height: screenHeight * 0.07, // Match search bar height
+                    height: screenHeight * 0.07,
                     width: screenHeight * 0.07,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16), // Larger radius
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey[300]!, width: 1.5),
                       boxShadow: [
                         BoxShadow(
@@ -94,10 +104,8 @@ class _SearchPageState extends State<SearchPage> {
                       ],
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.tune,
-                          color: Colors.grey[700], size: screenWidth * 0.07),
+                      icon: Icon(Icons.tune, color: Colors.grey[700], size: screenWidth * 0.07),
                       onPressed: () {
-                        // Add filter icon functionality (e.g., open filter dialog)
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Filter options not implemented yet')),
                         );
@@ -107,7 +115,6 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
             ),
-            // Filter buttons
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: screenWidth * 0.04,
@@ -128,23 +135,11 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
             ),
-            // Display search query or selected filter (for demo purposes)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-              child: Text(
-                _searchQuery.isNotEmpty
-                    ? 'Searching for: $_searchQuery'
-                    : _selectedFilter != null
-                        ? 'Filtered by: $_selectedFilter'
-                        : 'Enter a search term or select a filter',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.04,
-                  color: Colors.grey[700],
-                ),
-              ),
+            Expanded(
+              child: _searchQuery.isNotEmpty
+                  ? _buildNoResultsFound(screenWidth, screenHeight)
+                  : _buildInitialMessage(screenWidth),
             ),
-            // The rest of the page
-            Expanded(child: Container()),
           ],
         ),
       ),
@@ -156,17 +151,17 @@ class _SearchPageState extends State<SearchPage> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedFilter = isSelected ? null : label; // Toggle filter selection
+          _selectedFilter = isSelected ? null : label;
         });
       },
       child: Container(
-        height: screenWidth * 0.12, // Larger filter buttons
+        height: screenWidth * 0.12,
         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue[50] : Colors.white,
           border: Border.all(
               color: isSelected ? Colors.blue[700]! : Colors.grey[300]!, width: 1.5),
-          borderRadius: BorderRadius.circular(12), // More rounded
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black12,
@@ -176,25 +171,72 @@ class _SearchPageState extends State<SearchPage> {
           ],
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min, // Prevent stretching
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               label,
               style: TextStyle(
-                fontSize: screenWidth * 0.04, // Larger font
+                fontSize: screenWidth * 0.04,
                 color: isSelected ? Colors.blue[700] : Colors.grey[800],
-                fontWeight: FontWeight.w500, // Slightly bolder text
+                fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(width: screenWidth * 0.015),
             Icon(
               Icons.keyboard_arrow_down,
-              size: screenWidth * 0.055, // Larger icon
+              size: screenWidth * 0.055,
               color: isSelected ? Colors.blue[700] : Colors.grey[600],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInitialMessage(double screenWidth) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+      child: Text(
+        _selectedFilter != null
+            ? 'Filtered by: $_selectedFilter'
+            : 'Enter a search term or select a filter',
+        style: TextStyle(
+          fontSize: screenWidth * 0.04,
+          color: Colors.grey[700],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoResultsFound(double screenWidth, double screenHeight) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: screenWidth * 0.5,
+            height: screenHeight * 0.3,
+            child: Image.asset('assets/images/notFound.png'),
+          ),
+          SizedBox(height: screenHeight * 0.02),
+          Text(
+            'No medicine found for "$_searchQuery".',
+            style: TextStyle(
+              fontSize: screenWidth * 0.05,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: screenHeight * 0.01),
+          Text(
+            'Try checking the spelling or filters.',
+            style: TextStyle(
+              fontSize: screenWidth * 0.04,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
       ),
     );
   }

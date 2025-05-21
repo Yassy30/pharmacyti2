@@ -12,36 +12,32 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-
-  // List of screens to navigate between
-  final List<Widget> _screens = [];
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize the screens list
-    _screens.addAll([
-      _buildHomeContent(), // Home screen content
-      SearchPage(), // Search page
-      CartPage(), // Cart page
-      ProfilePage() // Profile page
-    ]);
-  }
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Define the screens dynamically to ensure they use the latest context and state
+    final List<Widget> screens = [
+      _buildHomeContent(context),
+      SearchPage(initialQuery: _searchQuery),
+      CartPage(),
+      ProfilePage(),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _screens[_selectedIndex], // Display the selected screen
+      body: screens[_selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)), // Grander radius
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
               color: Colors.black12,
-              blurRadius: 10, // Stronger shadow
+              blurRadius: 10,
               offset: Offset(0, -3),
             ),
           ],
@@ -50,7 +46,7 @@ class _HomePageState extends State<HomePage> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          selectedItemColor: Colors.blue[700], // Bolder color
+          selectedItemColor: Colors.blue[700],
           unselectedItemColor: Colors.grey[600],
           currentIndex: _selectedIndex,
           onTap: (index) {
@@ -59,7 +55,7 @@ class _HomePageState extends State<HomePage> {
             });
           },
           showUnselectedLabels: true,
-          selectedFontSize: screenWidth * 0.035, // Larger font
+          selectedFontSize: screenWidth * 0.035,
           unselectedFontSize: screenWidth * 0.03,
           items: [
             BottomNavigationBarItem(
@@ -86,51 +82,45 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Home screen content builder
-  Widget _buildHomeContent() {
+  Widget _buildHomeContent(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User profile header with notification icon
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(screenWidth * 0.04),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      // User avatar
                       CircleAvatar(
-                        radius: 20,
+                        radius: screenWidth * 0.055,
                         backgroundImage: AssetImage('assets/images/client.png'),
                       ),
-                      const SizedBox(width: 12),
-                      // User info
+                      SizedBox(width: screenWidth * 0.03),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Fatima Bichouarine',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: screenWidth * 0.045,
                             ),
                           ),
                           Row(
                             children: [
-                              Icon(
-                                Icons.circle,
-                                color: Colors.green,
-                                size: 10,
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
+                              Icon(Icons.circle, color: Colors.green, size: screenWidth * 0.025),
+                              SizedBox(width: 4),
+                              Text(
                                 'Agadir, Morocco',
                                 style: TextStyle(
                                   color: Colors.grey,
-                                  fontSize: 12,
+                                  fontSize: screenWidth * 0.032,
                                 ),
                               ),
                             ],
@@ -139,108 +129,120 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  // Notification icon
                   IconButton(
-                    icon: Icon(Icons.logout_outlined, color: Colors.blue),
+                    icon: Icon(Icons.logout_outlined, color: Colors.blue, size: screenWidth * 0.07),
                     onPressed: () {},
                   ),
                 ],
               ),
             ),
-            // Search bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.search, color: Colors.grey),
-                    const SizedBox(width: 8),
+                    Icon(Icons.search, color: Colors.grey, size: screenWidth * 0.06),
+                    SizedBox(width: 8),
                     Expanded(
                       child: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                        onSubmitted: (value) {
+                          setState(() {
+                            _selectedIndex = 1;
+                          });
+                        },
                         decoration: InputDecoration(
                           hintText: 'Search for medicines, pharmacies...',
                           border: InputBorder.none,
-                          hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                          hintStyle: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.037),
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.document_scanner_outlined, color: Colors.grey),
+                      icon: Icon(Icons.document_scanner_outlined, color: Colors.grey, size: screenWidth * 0.06),
                       onPressed: () {},
                     ),
                     IconButton(
-                      icon: Icon(Icons.filter_list, color: Colors.grey),
+                      icon: Icon(Icons.filter_list, color: Colors.grey, size: screenWidth * 0.06),
                       onPressed: () {},
                     ),
                   ],
                 ),
               ),
             ),
-            // Categories section
             Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 24.0, bottom: 8.0),
+              padding: EdgeInsets.only(left: screenWidth * 0.04, top: screenHeight * 0.03, bottom: screenHeight * 0.01),
               child: Text(
                 'Categories',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: screenWidth * 0.048, fontWeight: FontWeight.bold),
               ),
             ),
-            // Categories horizontal list
             SizedBox(
-              height: 90,
+              height: screenHeight * 0.12,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                 children: [
-                  _buildCategoryItem('Cold & Flu', 'assets/images/pharmacy_logo.png'),
-                  _buildCategoryItem('Vitamins', 'assets/images/pharmacy_logo.png'),
-                  _buildCategoryItem('Personal Care', 'assets/images/pharmacy_logo.png'),
-                  _buildCategoryItem('Baby & Mom', 'assets/images/pharmacy_logo.png'),
-                  _buildCategoryItem('Natural & Organic', 'assets/images/pharmacy_logo.png'),
+                  _buildCategoryItem('Cold & Flu', 'assets/images/pharmacy_logo.png', screenWidth),
+                  _buildCategoryItem('Vitamins', 'assets/images/pharmacy_logo.png', screenWidth),
+                  _buildCategoryItem('Personal Care', 'assets/images/pharmacy_logo.png', screenWidth),
+                  _buildCategoryItem('Baby & Mom', 'assets/images/pharmacy_logo.png', screenWidth),
+                  _buildCategoryItem('Natural & Organic', 'assets/images/pharmacy_logo.png', screenWidth),
                 ],
               ),
             ),
-            // Promotional banner
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(screenWidth * 0.04),
               child: Container(
-                height: 120,
+                height: screenHeight * 0.16,
                 decoration: BoxDecoration(
                   color: Color(0xFFE0F7FA),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       flex: 2,
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: EdgeInsets.all(screenWidth * 0.04),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               'Need help fast? Get',
-                              style: TextStyle(fontSize: 14),
+                              style: TextStyle(fontSize: screenWidth * 0.038),
                             ),
                             Text(
                               '24/7 delivery now',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontSize: screenWidth * 0.042, fontWeight: FontWeight.bold),
                             ),
-                            SizedBox(height: 12),
+                            SizedBox(height: screenHeight * 0.015),
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                               decoration: BoxDecoration(
                                 color: Colors.blue,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 'Order now',
-                                style: TextStyle(color: Colors.white, fontSize: 12),
+                                style: TextStyle(color: Colors.white, fontSize: screenWidth * 0.034),
                               ),
                             ),
                           ],
@@ -258,31 +260,30 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            // Pagination dots
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: screenWidth * 0.02,
+                  height: screenWidth * 0.02,
                   decoration: BoxDecoration(
                     color: Colors.blue,
                     shape: BoxShape.circle,
                   ),
                 ),
-                SizedBox(width: 4),
+                SizedBox(width: screenWidth * 0.01),
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: screenWidth * 0.02,
+                  height: screenWidth * 0.02,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
                     shape: BoxShape.circle,
                   ),
                 ),
-                SizedBox(width: 4),
+                SizedBox(width: screenWidth * 0.01),
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: screenWidth * 0.02,
+                  height: screenWidth * 0.02,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
                     shape: BoxShape.circle,
@@ -290,49 +291,47 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            // Pharmacies Near You section
             Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24.0, bottom: 8.0),
+              padding: EdgeInsets.only(left: screenWidth * 0.04, right: screenWidth * 0.04, top: screenHeight * 0.03, bottom: screenHeight * 0.01),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Pharmacies Near You',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: screenWidth * 0.048, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     'Map view',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: screenWidth * 0.032, color: Colors.grey),
                   ),
                 ],
               ),
             ),
-            // Pharmacy list
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
               child: Column(
                 children: [
-                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', true),
-                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', false),
-                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', true),
+                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', true, screenWidth, screenHeight),
+                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', false, screenWidth, screenHeight),
+                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', true, screenWidth, screenHeight),
                 ],
               ),
             ),
+            SizedBox(height: screenHeight * 0.03),
           ],
         ),
       ),
     );
   }
 
-  // Helper method to build category items
-  Widget _buildCategoryItem(String title, String imagePath) {
+  Widget _buildCategoryItem(String title, String imagePath, double screenWidth) {
     return Container(
-      margin: const EdgeInsets.only(right: 16),
+      margin: EdgeInsets.only(right: screenWidth * 0.04),
       child: Column(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: screenWidth * 0.15,
+            height: screenWidth * 0.15,
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               shape: BoxShape.circle,
@@ -340,16 +339,16 @@ class _HomePageState extends State<HomePage> {
             child: Center(
               child: Image.asset(
                 imagePath,
-                width: 30,
-                height: 30,
+                width: screenWidth * 0.075,
+                height: screenWidth * 0.075,
                 fit: BoxFit.contain,
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: screenWidth * 0.02),
           Text(
             title,
-            style: TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: screenWidth * 0.03),
             textAlign: TextAlign.center,
           ),
         ],
@@ -357,11 +356,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Helper method to build pharmacy items
-  Widget _buildPharmacyItem(String name, String rating, String address, String distance, bool isOpen) {
+  Widget _buildPharmacyItem(String name, String rating, String address, String distance, bool isOpen, double screenWidth, double screenHeight) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: screenHeight * 0.02),
+      padding: EdgeInsets.all(screenWidth * 0.04),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade200),
         borderRadius: BorderRadius.circular(12),
@@ -385,18 +383,18 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.045),
                   ),
-                  const SizedBox(width: 8),
-                  Icon(Icons.star, color: Colors.amber, size: 16),
+                  SizedBox(width: screenWidth * 0.02),
+                  Icon(Icons.star, color: Colors.amber, size: screenWidth * 0.04),
                   Text(
                     rating,
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: screenWidth * 0.035),
                   ),
                 ],
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenHeight * 0.007),
                 decoration: BoxDecoration(
                   color: isOpen ? Colors.green.shade100 : Colors.red.shade100,
                   borderRadius: BorderRadius.circular(20),
@@ -405,53 +403,53 @@ class _HomePageState extends State<HomePage> {
                   isOpen ? 'Open now' : 'Closed',
                   style: TextStyle(
                     color: isOpen ? Colors.green.shade700 : Colors.red.shade700,
-                    fontSize: 12,
+                    fontSize: screenWidth * 0.03,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: screenHeight * 0.01),
           Row(
             children: [
-              Icon(Icons.location_on, color: Colors.red, size: 16),
+              Icon(Icons.location_on, color: Colors.red, size: screenWidth * 0.04),
               Text(
                 ' $address',
-                style: TextStyle(fontSize: 14),
+                style: TextStyle(fontSize: screenWidth * 0.035),
               ),
               Text(
                 ' • $distance',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.035),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: screenHeight * 0.02),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {},
-                  icon: Icon(Icons.call, color: Colors.white, size: 18),
-                  label: Text('Call', style: TextStyle(color: Colors.white)),
+                  icon: Icon(Icons.call, color: Colors.white, size: screenWidth * 0.045),
+                  label: Text('Call', style: TextStyle(color: Colors.white, fontSize: screenWidth * 0.035)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  icon: Icon(Icons.menu_book, color: Colors.blue, size: 18),
-                  label: Text('View', style: TextStyle(color: Colors.blue)),
+                  icon: Icon(Icons.menu_book, color: Colors.blue, size: screenWidth * 0.045),
+                  label: Text('View', style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.035)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.blue.shade200),
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
