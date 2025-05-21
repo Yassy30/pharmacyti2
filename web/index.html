@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<!-- Add this in the <head> section -->
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -31,6 +32,11 @@
 
   <title>pharmaciyti</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+    window.flutterWebRenderer = "canvaskit";
+  </script>
+  <link rel="preload" href="https://unpkg.com/canvaskit-wasm@0.33.0/bin/canvaskit.js" as="script">
+  <link rel="preload" href="https://unpkg.com/canvaskit-wasm@0.33.0/bin/canvaskit.wasm" as="fetch" crossorigin="anonymous">
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
