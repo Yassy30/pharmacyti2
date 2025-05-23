@@ -12,8 +12,18 @@ import 'package:pharmaciyti/onboarding/whoareu.dart';
 import 'package:pharmaciyti/pharmacie/Infosph.dart';
 import 'package:pharmaciyti/pharmacie/MainCont.dart';
 import 'package:pharmaciyti/pharmacie/order_screens.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+  );
+  print(dotenv.env['SUPABASE_URL']);
+  print(dotenv.env['SUPABASE_ANON_KEY']);
   runApp(const MyApp());
 }
 
