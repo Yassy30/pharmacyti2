@@ -3,9 +3,12 @@ import 'package:pharmaciyti/auth/login.dart';
 import 'package:pharmaciyti/pharmacie/medcine.dart';
 import 'package:pharmaciyti/pharmacie/category.dart';
 import 'package:pharmaciyti/pharmacie/payment.dart';
+// import 'package:pharmaciyti/pharmacie/earning.dart'; // Added import
 import 'package:pharmaciyti/utils/colors.dart';
 
 class Dashboard extends StatefulWidget {
+  const Dashboard({super.key});
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -22,7 +25,7 @@ class _DashboardScreenState extends State<Dashboard> {
       body: SafeArea(
         child: Column(
           children: [
-            // Welcome section with light background
+            // Welcome section
             Container(
               padding: EdgeInsets.all(screenWidth * 0.04),
               decoration: BoxDecoration(
@@ -32,7 +35,7 @@ class _DashboardScreenState extends State<Dashboard> {
                     color: Colors.grey.withOpacity(0.1),
                     spreadRadius: 1,
                     blurRadius: 3,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -66,7 +69,7 @@ class _DashboardScreenState extends State<Dashboard> {
                       onTap: () {
                         Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (context) => Login()),
+                          MaterialPageRoute(builder: (context) => const Login()),
                           (route) => false,
                         );
                       },
@@ -95,7 +98,7 @@ class _DashboardScreenState extends State<Dashboard> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => MedicinePage()),
+                          MaterialPageRoute(builder: (context) =>  MedicinePage()),
                         );
                       },
                     ),
@@ -108,7 +111,7 @@ class _DashboardScreenState extends State<Dashboard> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CategoryPage()),
+                          MaterialPageRoute(builder: (context) =>  CategoryPage()),
                         );
                       },
                     ),
@@ -120,7 +123,7 @@ class _DashboardScreenState extends State<Dashboard> {
                       amount: '\$160',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => PayPage()),
+                        MaterialPageRoute(builder: (context) =>  PayPage()),
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
@@ -129,10 +132,10 @@ class _DashboardScreenState extends State<Dashboard> {
                       Icons.attach_money_outlined,
                       AppColors.primaryGreen,
                       amount: '\$668.9',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => EarningsPage()),
-                      ),
+                      // onTap: () => Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(builder: (context) =>  EarningsPage()),
+                      // ),
                     ),
                   ],
                 ),
@@ -161,7 +164,7 @@ class _DashboardScreenState extends State<Dashboard> {
               color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 3,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
