@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-
+// TODO: Create personal_info_page.dart file and uncomment this import
+// import 'package:pharmacyti2/client/personal_info_page.dart';
+import 'package:pharmaciyti/client/profil_info.dart';
 class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -7,59 +9,64 @@ class ProfilePage extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.white, // Changed to white
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            // Profile Card (Larger)
+            // Profile Card (Larger) - Now navigates to PersonalInfoPage
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: screenWidth * 0.04,
                 vertical: screenHeight * 0.02,
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(16), // More rounded
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 3),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PersonalInfoPage()),
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.05,
+                      vertical: screenHeight * 0.015,
                     ),
-                  ],
-                ),
-                child: ListTile(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.05,
-                    vertical: screenHeight * 0.015,
-                  ),
-                  leading: CircleAvatar(
-                    radius: screenWidth * 0.1, // Larger avatar
-                    backgroundImage: AssetImage('assets/images/client.png'), // Changed to AssetImage
-                  ),
-                  title: Text(
-                    'Fatima Bichouarine',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: screenWidth * 0.05, // Larger font
+                    leading: CircleAvatar(
+                      radius: screenWidth * 0.1,
+                      backgroundImage: AssetImage('assets/images/client.png'),
                     ),
-                  ),
-                  subtitle: Text(
-                    'Personal informations',
-                    style: TextStyle(
+                    title: Text(
+                      'Fatima Bichouarine',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.05,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Personal informations',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: screenWidth * 0.04,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      size: screenWidth * 0.05,
                       color: Colors.grey[600],
-                      fontSize: screenWidth * 0.04,
                     ),
                   ),
-                  trailing: Icon(
-                    Icons.arrow_forward_ios,
-                    size: screenWidth * 0.05,
-                    color: Colors.grey[600],
-                  ),
-                  onTap: () {
-                    // Navigate to personal info
-                  },
                 ),
               ),
             ),
@@ -73,7 +80,7 @@ class ProfilePage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!, width: 1.5), // Changed to gray
+                  border: Border.all(color: Colors.grey[300]!, width: 1.5),
                 ),
                 child: Column(
                   children: [
@@ -125,7 +132,7 @@ class ProfilePage extends StatelessWidget {
                 },
                 child: Container(
                   width: double.infinity,
-                  height: screenHeight * 0.06, // Slightly larger
+                  height: screenHeight * 0.06,
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(12),

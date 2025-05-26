@@ -25,10 +25,7 @@ class MedicinePage extends StatelessWidget {
               );
             },
           ),
-          IconButton(
-            icon: Icon(Icons.edit, color: AppColors.primaryGreen),
-            onPressed: () {},
-          ),
+          
         ],
       ),
       body: ListView(

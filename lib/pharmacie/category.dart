@@ -25,10 +25,7 @@ class CategoryPage extends StatelessWidget {
               );
             },
           ),
-          IconButton(
-            icon: Icon(Icons.edit, color: Colors.green),
-            onPressed: () {},
-          ),
+          
         ],
       ),
       body: ListView(
