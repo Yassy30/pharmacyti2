@@ -1,0 +1,84 @@
+CREATE TABLE delivery (
+    id INT PRIMARY KEY,
+    date_delivery TIMESTAMP,
+    localisation_delivery VARCHAR(255),
+    order_id INT
+);
+
+CREATE TABLE payments (
+    id INT PRIMARY KEY,
+    sum FLOAT,
+    method VARCHAR(100),
+    date TIMESTAMP,
+    status VARCHAR(50),
+    order_id INT
+);
+
+CREATE TABLE orders (
+    id INT PRIMARY KEY,
+    date TIMESTAMP,
+    status VARCHAR(50),
+    price_total FLOAT,
+    quantity_method INT,
+    payment_method VARCHAR(100),
+    user_id INT
+);
+
+CREATE TABLE user (
+    id INT PRIMARY KEY,
+    email VARCHAR(255),
+    password VARCHAR(255),
+    full_name TEXT,
+    role TEXT,
+    image_profile VARCHAR(255),
+    phone_number VARCHAR(20),
+    created_at TIMESTAMP
+);
+
+CREATE TABLE medicine (
+    id INT PRIMARY KEY,
+    name TEXT,
+    price FLOAT,
+    quantity INT,
+    disponibility VARCHAR(50),
+    image VARCHAR(255),
+    category_id INT
+);
+
+CREATE TABLE category (
+    id INT PRIMARY KEY,
+    name TEXT,
+    image VARCHAR(255),
+    status TEXT
+);
+
+CREATE TABLE order_medicines (
+    id INT PRIMARY KEY,
+    order_id INT,
+    medicine_id INT
+);
+
+-- Foreign key constraints
+ALTER TABLE delivery
+ADD CONSTRAINT fk_delivery_order
+FOREIGN KEY (order_id) REFERENCES orders(id);
+
+ALTER TABLE payments
+ADD CONSTRAINT fk_payments_order
+FOREIGN KEY (order_id) REFERENCES orders(id);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_user
+FOREIGN KEY (user_id) REFERENCES user(id);
+
+ALTER TABLE medicine
+ADD CONSTRAINT fk_medicine_category
+FOREIGN KEY (category_id) REFERENCES category(id);
+
+ALTER TABLE order_medicines
+ADD CONSTRAINT fk_order_medicines_order
+FOREIGN KEY (order_id) REFERENCES orders(id);
+
+ALTER TABLE order_medicines
+ADD CONSTRAINT fk_order_medicines_medicine
+FOREIGN KEY (medicine_id) REFERENCES medicine(id);
