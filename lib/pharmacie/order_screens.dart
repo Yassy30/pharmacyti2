@@ -104,24 +104,23 @@ class CurrentOrdersTab extends StatelessWidget {
           context,
           date: '2025-05-11',
           orderId: '215',
-          pharmacy: 'Cartena',
+          client: 'Cartena',
           address: '1591 Bradley Park ...',
           paymentMethod: 'Pay At Store',
           amount: '\$135',
           status: 'Pending',
-          isSelf: true,
+          // isSelf: true,
         ),
         const SizedBox(height: 16),
         _buildOrderCard(
           context,
           date: '2025-04-22',
           orderId: '213',
-          pharmacy: 'Cartena',
+          client: 'Cartena',
           address: '1591 Bradley Park ...',
           paymentMethod: 'Razorpay',
           amount: '\$240',
           status: 'Pending',
-          isSelf: true,
         ),
       ],
     );
@@ -141,24 +140,22 @@ class PastOrdersTab extends StatelessWidget {
           context,
           date: '2023-04-27',
           orderId: '11',
-          pharmacy: 'Cartena',
+          client: 'Cartena',
           address: '1591 Bradley Park ...',
           paymentMethod: 'Pay At Store',
           amount: '\$151',
           status: 'Completed',
-          isSelf: true,
         ),
         const SizedBox(height: 16),
         _buildOrderCard(
           context,
           date: '2023-04-27',
           orderId: '10',
-          pharmacy: 'Cartena',
+          client: 'Cartena',
           address: '1591 Bradley Park ...',
           paymentMethod: 'Razorpay',
           amount: '\$120',
           status: 'Completed',
-          isSelf: true,
         ),
       ],
     );
@@ -170,12 +167,11 @@ Widget _buildOrderCard(
   BuildContext context, {
   required String date,
   required String orderId,
-  required String pharmacy,
+  required String client,
   required String address,
   required String paymentMethod,
   required String amount,
   required String status,
-  required bool isSelf,
 }) {
   final bool isPending = status == 'Pending';
   final Color statusColor = isPending ? Colors.orange : Colors.green;
@@ -217,19 +213,6 @@ Widget _buildOrderCard(
                 'Order ID: $orderId',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              if (isSelf)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'Self',
-                    style: TextStyle(color: Colors.green),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -255,7 +238,7 @@ Widget _buildOrderCard(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      pharmacy,
+                      client,
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 4),
