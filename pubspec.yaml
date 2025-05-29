@@ -45,6 +45,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  supabase_flutter: ^2.0.0
+  flutter_dotenv: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -63,6 +65,7 @@ flutter:
     - assets/images/eclo_ointment.jpeg
     - assets/images/pharmacy_logo.png
     - assets/images/triphala.jpeg
+    - .env
 
   # To add assets to your application, add an assets section, like this:
   # assets:
