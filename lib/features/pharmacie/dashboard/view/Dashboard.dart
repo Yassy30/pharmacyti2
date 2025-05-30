@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD:lib/pharmacie/Dashboard.dart
-import 'package:pharmaciyti/auth/login.dart';
-import 'package:pharmaciyti/pharmacie/medcine.dart';
-import 'package:pharmaciyti/pharmacie/category.dart';
-import 'package:pharmaciyti/pharmacie/payment.dart';
-// import 'package:pharmaciyti/pharmacie/earning.dart'; // Added import
-import 'package:pharmaciyti/utils/colors.dart';
-=======
 import 'package:pharmaciyti/features/auth/view/login.dart';
 import 'package:pharmaciyti/features/pharmacie/inventory/view/medicine/medcine.dart';
 import 'package:pharmaciyti/features/pharmacie/inventory/view/category/category.dart';
 import 'package:pharmaciyti/features/pharmacie/financials/view/payment.dart';
 import 'package:pharmaciyti/core/constants/colors.dart';
 import '../../financials/view/earning.dart';
->>>>>>> fe06d79b0b3cd945e118aa584adc724ebfb4e678:lib/features/pharmacie/dashboard/view/Dashboard.dart
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});

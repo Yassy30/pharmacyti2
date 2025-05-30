@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD:lib/livreur/Profile.dart
-import 'package:pharmaciyti/auth/login.dart';
-import 'package:pharmaciyti/livreur/ProfileInfos.dart';
-=======
+import 'package:pharmaciyti/features/auth/view/login.dart';
 import 'package:pharmaciyti/features/delivery/profile/view/ProfileInfos.dart';
->>>>>>> fe06d79b0b3cd945e118aa584adc724ebfb4e678:lib/features/delivery/profile/view/Profile.dart
 
 class Profile extends StatelessWidget {
   @override

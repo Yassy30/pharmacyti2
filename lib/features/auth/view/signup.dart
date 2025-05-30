@@ -1,13 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD:lib/auth/signup.dart
-import 'package:pharmaciyti/auth/login.dart';
-import 'package:pharmaciyti/client/congratulations.dart';
-import 'package:pharmaciyti/onboarding/whoareu.dart';
-=======
 import 'package:pharmaciyti/features/auth/view/login.dart';
 import 'package:pharmaciyti/features/client/congratulation/congratulations.dart';
->>>>>>> fe06d79b0b3cd945e118aa584adc724ebfb4e678:lib/features/auth/view/signup.dart
+import 'package:pharmaciyti/features/onboarding/whoareu.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
