@@ -1,84 +1,143 @@
-CREATE TABLE delivery (
-    id INT PRIMARY KEY,
-    date_delivery TIMESTAMP,
-    localisation_delivery VARCHAR(255),
-    order_id INT
+-- Create ENUM for roles
+CREATE TYPE user_role AS ENUM ('client', 'pharmacy', 'livreur');
+
+-- Create ENUM for status fields
+CREATE TYPE status_type AS ENUM ('available', 'out_of_stock');
+CREATE TYPE payment_type AS ENUM ('cash', 'card', 'online');
+CREATE TYPE order_status AS ENUM ('pending', 'processing', 'shipped', 'delivered', 'canceled');
+
+-- Create User table with UUID
+CREATE TABLE "User" (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    address TEXT,
+    role user_role NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    image_profile TEXT,
+    phone_number VARCHAR(20)
 );
 
-CREATE TABLE payments (
-    id INT PRIMARY KEY,
-    sum FLOAT,
-    method VARCHAR(100),
-    date TIMESTAMP,
-    status VARCHAR(50),
-    order_id INT
-);
-
-CREATE TABLE orders (
-    id INT PRIMARY KEY,
-    date TIMESTAMP,
-    status VARCHAR(50),
-    price_total FLOAT,
-    quantity_method INT,
-    payment_method VARCHAR(100),
-    user_id INT
-);
-
-CREATE TABLE user (
-    id INT PRIMARY KEY,
-    email VARCHAR(255),
-    password VARCHAR(255),
-    full_name TEXT,
-    role TEXT,
-    image_profile VARCHAR(255),
-    phone_number VARCHAR(20),
-    created_at TIMESTAMP
-);
-
-CREATE TABLE medicine (
-    id INT PRIMARY KEY,
-    name TEXT,
-    price FLOAT,
-    quantity INT,
-    disponibility VARCHAR(50),
-    image VARCHAR(255),
-    category_id INT
-);
-
+-- Create category table
 CREATE TABLE category (
-    id INT PRIMARY KEY,
-    name TEXT,
-    image VARCHAR(255),
-    status TEXT
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    status status_type NOT NULL,
+    image TEXT
 );
 
+-- Create medicine table
+CREATE TABLE medicine (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    category_id INTEGER REFERENCES category(id) ON DELETE SET NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    quantity INTEGER NOT NULL,
+    status status_type NOT NULL,
+    image TEXT,
+    description TEXT,
+    status_prescription BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- Create orders table with UUID foreign key
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status order_status NOT NULL DEFAULT 'pending',
+    price_total DECIMAL(10, 2) NOT NULL,
+    quantity INTEGER NOT NULL,
+    type_payment payment_type NOT NULL,
+    user_id UUID REFERENCES "User"(id) ON DELETE CASCADE
+);
+
+-- Create order_medicines (junction table)
 CREATE TABLE order_medicines (
-    id INT PRIMARY KEY,
-    order_id INT,
-    medicine_id INT
+    order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+    medicine_id INTEGER REFERENCES medicine(id) ON DELETE CASCADE,
+    PRIMARY KEY (order_id, medicine_id)
 );
 
--- Foreign key constraints
-ALTER TABLE delivery
-ADD CONSTRAINT fk_delivery_order
-FOREIGN KEY (order_id) REFERENCES orders(id);
+-- Create delivery table
+CREATE TABLE delivery (
+    id SERIAL PRIMARY KEY,
+    date_delivery TIMESTAMP,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    localisation_delivery TEXT,
+    order_id INTEGER UNIQUE REFERENCES orders(id) ON DELETE CASCADE
+);
 
-ALTER TABLE payments
-ADD CONSTRAINT fk_payments_order
-FOREIGN KEY (order_id) REFERENCES orders(id);
+-- Create payments table
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    sum DECIMAL(10, 2) NOT NULL,
+    method payment_type NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status order_status NOT NULL DEFAULT 'pending',
+    order_id INTEGER UNIQUE REFERENCES orders(id) ON DELETE CASCADE
+);
 
-ALTER TABLE orders
-ADD CONSTRAINT fk_orders_user
-FOREIGN KEY (user_id) REFERENCES user(id);
+-- Create indexes for better performance
+CREATE INDEX idx_user_email ON "User"(email);
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_medicine_category_id ON medicine(category_id);
 
-ALTER TABLE medicine
-ADD CONSTRAINT fk_medicine_category
-FOREIGN KEY (category_id) REFERENCES category(id);
+-- Enable Row-Level Security (RLS)
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE category ENABLE ROW LEVEL SECURITY;
+ALTER TABLE medicine ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_medicines ENABLE ROW LEVEL SECURITY;
+ALTER TABLE delivery ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE order_medicines
-ADD CONSTRAINT fk_order_medicines_order
-FOREIGN KEY (order_id) REFERENCES orders(id);
+-- Create policies for RLS
+CREATE POLICY user_access ON "User"
+    USING (id = auth.uid())
+    WITH CHECK (id = auth.uid());
 
-ALTER TABLE order_medicines
-ADD CONSTRAINT fk_order_medicines_medicine
-FOREIGN KEY (medicine_id) REFERENCES medicine(id);
+CREATE POLICY category_view ON category
+    FOR SELECT USING (true);
+CREATE POLICY category_manage ON category
+    FOR ALL USING (EXISTS (SELECT 1 FROM "User" WHERE "User".id = auth.uid() AND "User".role = 'pharmacy'));
+
+CREATE POLICY medicine_view ON medicine
+    FOR SELECT USING (true);
+CREATE POLICY medicine_manage ON medicine
+    FOR ALL USING (EXISTS (SELECT 1 FROM "User" WHERE "User".id = auth.uid() AND "User".role = 'pharmacy'));
+
+CREATE POLICY orders_user_access ON orders
+    FOR ALL USING (user_id = auth.uid());
+CREATE POLICY orders_pharmacy_view ON orders
+    FOR SELECT USING (EXISTS (SELECT 1 FROM "User" WHERE "User".id = auth.uid() AND "User".role = 'pharmacy'));
+
+CREATE POLICY order_medicines_user_access ON order_medicines
+    FOR ALL USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_medicines.order_id AND orders.user_id = auth.uid()));
+CREATE POLICY order_medicines_pharmacy_view ON order_medicines
+    FOR SELECT USING (EXISTS (SELECT 1 FROM "User" WHERE "User".id = auth.uid() AND "User".role = 'pharmacy'));
+
+CREATE POLICY delivery_user_view ON delivery
+    FOR SELECT USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = delivery.order_id AND orders.user_id = auth.uid()));
+CREATE POLICY delivery_manage ON delivery
+    FOR ALL USING (EXISTS (SELECT 1 FROM "User" WHERE "User".id = auth.uid() AND "User".role IN ('pharmacy', 'livreur')));
+
+CREATE POLICY payments_user_view ON payments
+    FOR SELECT USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = payments.order_id AND orders.user_id = auth.uid()));
+CREATE POLICY payments_pharmacy_manage ON payments
+    FOR ALL USING (EXISTS (SELECT 1 FROM "User" WHERE "User".id = auth.uid() AND "User".role = 'pharmacy'));
+
+-- Function to update the updated_at column
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for User table
+CREATE TRIGGER update_user_timestamp
+    BEFORE UPDATE ON "User"
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
