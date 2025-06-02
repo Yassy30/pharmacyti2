@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pharmaciyti/features/auth/viewmodel/user_viewmodel.dart';
+import 'package:pharmaciyti/features/delivery/congratulation/congratsliv.dart';
 
 class ProfileInfos extends StatefulWidget {
   const ProfileInfos({Key? key}) : super(key: key);
@@ -8,13 +11,38 @@ class ProfileInfos extends StatefulWidget {
 }
 
 class _ProfileInfosState extends State<ProfileInfos> {
-  final TextEditingController nameController = TextEditingController(text: "Amine Livreur");
-  final TextEditingController emailController = TextEditingController(text: "rider@gmail.com");
-  final TextEditingController phoneController = TextEditingController(text: "0612345678");
-  final TextEditingController addressController = TextEditingController(text: "123, Mohammed V Avenue");
+  late TextEditingController fullNameController;
+  late TextEditingController phoneController;
+  late TextEditingController addressController;
+  String? _imageProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    fullNameController = TextEditingController(text: userViewModel.fullName);
+    phoneController = TextEditingController(text: userViewModel.phoneNumber);
+    addressController = TextEditingController(text: userViewModel.address);
+    _imageProfile = userViewModel.imageProfile;
+
+    // Fetch user details if not already loaded
+    if (userViewModel.fullName == null) {
+      userViewModel.fetchUserDetails();
+    }
+  }
+
+  @override
+  void dispose() {
+    fullNameController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userViewModel = Provider.of<UserViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -22,7 +50,7 @@ class _ProfileInfosState extends State<ProfileInfos> {
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Profile Information', style: TextStyle(color: Colors.black)),
+        title: Text('Delivery Information', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
       ),
@@ -43,28 +71,44 @@ class _ProfileInfosState extends State<ProfileInfos> {
                       shape: BoxShape.circle,
                       color: Colors.lightBlue.shade100,
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.blue.shade300,
-                      ),
-                    ),
+                    child: _imageProfile != null
+                        ? Image.network(
+                            _imageProfile!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.person,
+                              size: 60,
+                              color: Colors.blue.shade300,
+                            ),
+                          )
+                        : Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Colors.blue.shade300,
+                          ),
                   ),
                   Positioned(
                     right: 0,
                     bottom: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 20,
-                        color: Colors.grey,
+                    child: GestureDetector(
+                      onTap: () {
+                        // TODO: Implement image picker logic
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Image upload not implemented')),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 20,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ),
@@ -72,29 +116,63 @@ class _ProfileInfosState extends State<ProfileInfos> {
               ),
             ),
             SizedBox(height: 30),
-            
             // Name Field
-            _buildInfoField("Your name", nameController),
+            _buildInfoField("Full name", fullNameController),
             SizedBox(height: 16),
-            
             // Email Field
-            _buildInfoField("Your email", emailController),
+            _buildInfoField("Email", TextEditingController(text: userViewModel.email ?? ''), enabled: false),
             SizedBox(height: 16),
-            
             // Phone Field
             _buildInfoField("Phone number", phoneController),
             SizedBox(height: 16),
-            
             // Address Field
-            _buildInfoField("Adress", addressController),
+            _buildInfoField("Address", addressController),
             SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: userViewModel.isLoading
+                  ? null
+                  : () async {
+                      final success = await userViewModel.updateUserDetails(
+                        fullName: fullNameController.text.trim(),
+                        phoneNumber: phoneController.text.trim(),
+                        address: addressController.text.trim(),
+                      );
+                      if (success) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Congratsliv()),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(userViewModel.errorMessage ?? 'Failed to update profile')),
+                        );
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              child: userViewModel.isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                      'Submit',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+            ),
           ],
         ),
       ),
     );
   }
-  
-  Widget _buildInfoField(String label, TextEditingController controller) {
+
+  Widget _buildInfoField(String label, TextEditingController controller, {bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,15 +188,15 @@ class _ProfileInfosState extends State<ProfileInfos> {
           ),
           child: TextField(
             controller: controller,
+            enabled: enabled,
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              suffixIcon: Icon(Icons.edit, color: Colors.black),
+              suffixIcon: enabled ? Icon(Icons.edit, color: Colors.black) : null,
             ),
           ),
         ),
       ],
     );
   }
-  
 }

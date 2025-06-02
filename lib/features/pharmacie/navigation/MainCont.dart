@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:pharmacyti2/pharmacie/Dashboard.dart';
 import 'package:pharmaciyti/features/pharmacie/dashboard/view/Dashboard.dart';
-import 'package:pharmaciyti/features/pharmacie/profil/view/Profile.dart';
+import 'package:pharmaciyti/features/pharmacie/profil/view/Profile_pharmacy.dart';
 import 'package:pharmaciyti/features/pharmacie/orders/view/order_screens.dart';
 
 class MainContainer extends StatefulWidget {

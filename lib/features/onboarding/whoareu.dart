@@ -1,181 +1,115 @@
 import 'package:flutter/material.dart';
-import 'package:pharmaciyti/features/client/profile/view/InfosClient.dart';
-import 'package:pharmaciyti/features/client/congratulation/congratulations.dart';
-import 'package:pharmaciyti/features/delivery/profile/view/InfosLiv.dart';
-import 'package:pharmaciyti/features/delivery/congratulation/congratsliv.dart';
-import 'package:pharmaciyti/features/pharmacie/profil/view/Infosph.dart';
-import 'package:pharmaciyti/features/pharmacie/congratulation/congratsph.dart';
+import 'package:provider/provider.dart';
+import 'package:pharmaciyti/features/auth/viewmodel/autho_viewmodel.dart';
+import 'package:pharmaciyti/features/client/profile/view/profil_info.dart' as PersonalInfoPage;
+import 'package:pharmaciyti/features/pharmacie/profil/view/ProfileInfos.dart' as ProfileInfosPharmacy;
+import 'package:pharmaciyti/features/delivery/profile/view/ProfileInfos.dart' as ProfileInfosDelivery;
 
-class WhoAreYou extends StatefulWidget {
+class WhoAreYou extends StatelessWidget {
   const WhoAreYou({super.key});
 
   @override
-  State<WhoAreYou> createState() => _WhoAreYouState();
-}
-
-class _WhoAreYouState extends State<WhoAreYou> {
-  String? selectedRole;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void selectRole(String role) {
-    setState(() {
-      selectedRole = role;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final authViewModel = Provider.of<AuthViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                const Text(
-                  "Who are you ?",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 27,
-                  ),
-                  textAlign: TextAlign.center,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Who Are You?',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Please select your role to continue',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () async {
+                  final success = await authViewModel.updateUserRole('client');
+                  if (success) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => PersonalInfoPage.PersonalInfoPage()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(authViewModel.errorMessage ?? 'Failed to set role')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff2299c3),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
-                const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildRoleOption(
-                      title: "Client",
-                      imagePath: "assets/images/client.png", 
-                      role: "client",
-                    ),
-                  ],
+                child: const Text(
+                  'Client',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildRoleOption(
-                      title: "Pharmacy",
-                      imagePath: "assets/images/pharmacie.png",
-                      role: "pharmacy",
-                    ),
-                  ],
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  final success = await authViewModel.updateUserRole('pharmacy');
+                  if (success) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => ProfileInfosPharmacy.ProfileInfos()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(authViewModel.errorMessage ?? 'Failed to set role')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildRoleOption(
-                      title: "Delivery guy",
-                      imagePath: "assets/images/livreur.png",
-                      role: "delivery",
-                    ),
-                  ],
+                child: const Text(
+                  'Pharmacy',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                 ),
-                const SizedBox(height: 40),
-                if (selectedRole != null)
-                  ElevatedButton(
-                    onPressed: () {
-                      if (selectedRole == "client") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const InfosClient(),
-                          ),
-                        );
-                      } else if (selectedRole == "pharmacy") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Infosph(),
-                          ),
-                        );
-                      } else if (selectedRole == "delivery") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const InfosLiv(),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      "Continue",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  final success = await authViewModel.updateUserRole('livreur');
+                  if (success) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) =>  ProfileInfosDelivery.ProfileInfos()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(authViewModel.errorMessage ?? 'Failed to set role')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                ),
+                child: const Text(
+                  'Delivery',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildRoleOption({
-    required String title,
-    required String imagePath,
-    required String role,
-  }) {
-    bool isSelected = selectedRole == role;
-    
-    return GestureDetector(
-      onTap: () => selectRole(role),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? Colors.blue : Colors.grey.shade300,
-                width: isSelected ? 2 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                imagePath,
-                width: 80,
-                height: 80,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-              fontSize: 18,
-            ),
-          ),
-        ],
       ),
     );
   }

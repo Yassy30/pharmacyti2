@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:pharmaciyti/features/auth/view/login.dart';
 import 'package:pharmaciyti/features/auth/viewmodel/autho_viewmodel.dart';
+import 'package:pharmaciyti/features/auth/viewmodel/user_viewmodel.dart';
 import 'package:pharmaciyti/features/pharmacie/inventory/viewmodel/category_viewmodel.dart';
 import 'package:pharmaciyti/features/client/home/view/HomePage.dart';
 import 'package:pharmaciyti/features/pharmacie/navigation/MainCont.dart';
@@ -55,6 +56,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()..fetchCategories()),
         ChangeNotifierProvider(create: (_) => MedicineViewModel()),
+        ChangeNotifierProvider(create: (_) => UserViewModel()),
+
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

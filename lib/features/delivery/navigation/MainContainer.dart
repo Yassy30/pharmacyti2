@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/features/delivery/dashboard/view/Dashboard.dart';
 import 'package:pharmaciyti/features/delivery/orders/view/OrderScreen.dart';
-import 'package:pharmaciyti/features/delivery/profile/view/Profile.dart';
+import 'package:pharmaciyti/features/delivery/profile/view/Profile_delivery.dart';
 
 class LivreurMainContainer extends StatefulWidget {
   @override

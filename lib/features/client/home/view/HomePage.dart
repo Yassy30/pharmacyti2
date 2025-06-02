@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../search/view/search.dart';
 import '../../cart/view/cart.dart';
-import '../../profile/view/profile.dart';
+import '../../profile/view/profile_client.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
