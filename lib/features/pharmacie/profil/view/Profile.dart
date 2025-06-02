@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/core/constants/colors.dart';
 import 'package:pharmaciyti/features/auth/view/login.dart';
-import 'package:pharmaciyti/pharmacie/ProfileInfos.dart';
+import 'package:pharmaciyti/features/delivery/profile/view/ProfileInfos.dart';
 
 
 class Profile extends StatelessWidget {
