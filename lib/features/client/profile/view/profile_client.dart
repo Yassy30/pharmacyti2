@@ -65,7 +65,7 @@ class ProfilePage extends StatelessWidget {
                                 ? NetworkImage(userViewModel.imageProfile!)
                                 : AssetImage('assets/images/client.png') as ImageProvider,
                           ),
-                          title: Text(
+                          title: Text( 
                             userViewModel.fullName ?? 'Fatima Bichouarine',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,

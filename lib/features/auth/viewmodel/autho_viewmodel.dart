@@ -1,4 +1,5 @@
 // lib/features/auth/viewmodel/auth_viewmodel.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -87,17 +88,48 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateUserRole(String role) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return false;
-
+Future<bool> updateUserRole(String role) async {
     try {
-      await _supabase.from('User').update({'role': role}).eq('id', user.id);
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        _errorMessage = 'No authenticated user found. Please log in again.';
+        if (kDebugMode) print('Update role error: No user ID');
+        return false;
+      }
+
+      // Validate role against ENUM values
+      if (!['client', 'pharmacy', 'livreur'].contains(role)) {
+        _errorMessage = 'Invalid role: $role';
+        if (kDebugMode) print('Update role error: Invalid role');
+        return false;
+      }
+
+      final response = await _supabase
+          .from('User')
+          .update({'role': role})
+          .eq('id', userId)
+          .select('role')
+          .single();
+
+      if (response['role'] != role) {
+        _errorMessage = 'Failed to update role in database';
+        if (kDebugMode) print('Update role error: Role not updated');
+        return false;
+      }
+
+      if (kDebugMode) print('Role updated successfully: $role');
       return true;
     } catch (e) {
-      _errorMessage = 'Failed to update role';
-      notifyListeners();
+      _errorMessage = 'Failed to update role: $e';
+      if (kDebugMode) print('Update role error: $e');
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -105,4 +137,4 @@ class AuthViewModel extends ChangeNotifier {
     await _supabase.auth.signOut();
     notifyListeners();
   }
-}
+} 

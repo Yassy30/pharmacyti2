@@ -20,38 +20,40 @@ class UserViewModel with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   get username => null;
+  
+Future<void> fetchUserDetails() async {
+  try {
+    _isLoading = true;
+    notifyListeners();
 
-  Future<void> fetchUserDetails() async {
-    try {
-      _isLoading = true;
-      _errorMessage = null;
-      notifyListeners();
-
-      final userId = _client.auth.currentUser?.id;
-      if (userId == null) {
-        throw Exception('No authenticated user found');
-      }
-
-      final response = await _client
-          .from('User')
-          .select('full_name, email, phone_number, address, image_profile')
-          .eq('id', userId)
-          .single();
-
-      _fullName = response['full_name'] ?? 'Unknown User';
-      _email = response['email'] ?? '';
-      _phoneNumber = response['phone_number'];
-      _address = response['address'];
-      _imageProfile = response['image_profile'];
-      if (kDebugMode) print('Fetched user details: $_fullName, $_email');
-    } catch (e) {
-      _errorMessage = 'Failed to fetch user: $e';
-      if (kDebugMode) print('Fetch user error: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      _errorMessage = 'No authenticated user found';
+      return;
     }
+
+    final response = await _client
+        .from('User')
+        .select('full_name, phone_number, address, image_profile')
+        .eq('id', userId)
+        .single();
+
+    _fullName = response['full_name'];
+    _phoneNumber = response['phone_number'];
+    _address = response['address'];
+    _imageProfile = response['image_profile'];
+    
+    // Debug log
+    if (kDebugMode) print('Image URL: $_imageProfile');
+    
+  } catch (e) {
+    _errorMessage = 'Failed to fetch user details: $e';
+    if (kDebugMode) print('Fetch error: $e');
+  } finally {
+    _isLoading = false;
+    notifyListeners();
   }
+}
 
   Future<bool> updateUserDetails({
     String? fullName,
@@ -66,7 +68,8 @@ class UserViewModel with ChangeNotifier {
 
       final userId = _client.auth.currentUser?.id;
       if (userId == null) {
-        throw Exception('No authenticated user found');
+        _errorMessage = 'No authenticated user found';
+        return false;
       }
 
       final updates = {
@@ -90,5 +93,15 @@ class UserViewModel with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<bool> isProfileComplete() async {
+    await fetchUserDetails();
+    return _fullName != null &&
+        _fullName!.isNotEmpty &&
+        _phoneNumber != null &&
+        _phoneNumber!.isNotEmpty &&
+        _address != null &&
+        _address!.isNotEmpty;
   }
 }
