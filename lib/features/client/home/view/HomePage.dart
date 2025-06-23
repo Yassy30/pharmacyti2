@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../search/view/search.dart';
 import '../../cart/view/cart.dart';
-import '../../profile/view/profile_client.dart';
+import 'package:pharmaciyti/features/client/profile/view/profile_client.dart';
+import 'package:pharmaciyti/features/client/home/viewmodel/home_viewmodel.dart';
+import 'package:pharmaciyti/features/pharmacie/inventory/data/models/category.dart' as myCategory;
+import 'package:pharmaciyti/features/client/home/data/models/pharmacy.dart' as myPharmacy;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -18,10 +22,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final viewModel = Provider.of<HomeViewModel>(context);
 
     // Define the screens dynamically to ensure they use the latest context and state
     final List<Widget> screens = [
-      _buildHomeContent(context),
+      _buildHomeContent(context, viewModel),
       SearchPage(initialQuery: _searchQuery),
       CartPage(),
       ProfilePage(),
@@ -82,9 +87,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHomeContent(BuildContext context) {
+  Widget _buildHomeContent(BuildContext context, HomeViewModel viewModel) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
@@ -92,49 +98,55 @@ class _HomePageState extends State<HomePage> {
           children: [
             Padding(
               padding: EdgeInsets.all(screenWidth * 0.04),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: screenWidth * 0.055,
-                        backgroundImage: AssetImage('assets/images/client.png'),
-                      ),
-                      SizedBox(width: screenWidth * 0.03),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Fatima Bichouarine',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: screenWidth * 0.045,
+              child: viewModel.isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: screenWidth * 0.055,
+                              backgroundImage: viewModel.user?.imageProfile != null
+                                  ? NetworkImage(viewModel.user!.imageProfile!)
+                                  : AssetImage('assets/images/client.png') as ImageProvider,
                             ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(Icons.circle, color: Colors.green, size: screenWidth * 0.025),
-                              SizedBox(width: 4),
-                              Text(
-                                'Agadir, Morocco',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: screenWidth * 0.032,
+                            SizedBox(width: screenWidth * 0.03),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  viewModel.user?.fullName ?? 'Guest User',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: screenWidth * 0.045,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.logout_outlined, color: Colors.blue, size: screenWidth * 0.07),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
+                                Row(
+                                  children: [
+                                    Icon(Icons.circle, color: Colors.green, size: screenWidth * 0.025),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      viewModel.user?.address ?? 'Unknown Location',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: screenWidth * 0.032,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.logout_outlined, color: Colors.blue, size: screenWidth * 0.07),
+                          onPressed: () {
+                            viewModel.signOut(context);
+                          },
+                        ),
+                      ],
+                    ),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
@@ -160,6 +172,7 @@ class _HomePageState extends State<HomePage> {
                         onChanged: (value) {
                           setState(() {
                             _searchQuery = value;
+                            viewModel.updateSearchQuery(value);
                           });
                         },
                         onSubmitted: (value) {
@@ -195,17 +208,24 @@ class _HomePageState extends State<HomePage> {
             ),
             SizedBox(
               height: screenHeight * 0.12,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                children: [
-                  _buildCategoryItem('Cold & Flu', 'assets/images/pharmacy_logo.png', screenWidth),
-                  _buildCategoryItem('Vitamins', 'assets/images/pharmacy_logo.png', screenWidth),
-                  _buildCategoryItem('Personal Care', 'assets/images/pharmacy_logo.png', screenWidth),
-                  _buildCategoryItem('Baby & Mom', 'assets/images/pharmacy_logo.png', screenWidth),
-                  _buildCategoryItem('Natural & Organic', 'assets/images/pharmacy_logo.png', screenWidth),
-                ],
-              ),
+              child: viewModel.isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : viewModel.categories.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No categories available',
+                            style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                          itemCount: viewModel.categories.length,
+                          itemBuilder: (context, index) {
+                            final category = viewModel.categories[index];
+                            return _buildCategoryItem(category, screenWidth);
+                          },
+                        ),
             ),
             Padding(
               padding: EdgeInsets.all(screenWidth * 0.04),
@@ -309,13 +329,24 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-              child: Column(
-                children: [
-                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', true, screenWidth, screenHeight),
-                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', false, screenWidth, screenHeight),
-                  _buildPharmacyItem('Pharmacy Al Yassir', '4.5', 'Rue Hassan II', '0.8 km away', true, screenWidth, screenHeight),
-                ],
-              ),
+              child: viewModel.isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : viewModel.pharmacies.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No pharmacies available',
+                            style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: viewModel.pharmacies.length,
+                          itemBuilder: (context, index) {
+                            final pharmacy = viewModel.pharmacies[index];
+                            return _buildPharmacyItem(pharmacy, screenWidth, screenHeight);
+                          },
+                        ),
             ),
             SizedBox(height: screenHeight * 0.03),
           ],
@@ -324,7 +355,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoryItem(String title, String imagePath, double screenWidth) {
+  Widget _buildCategoryItem(myCategory.Category category, double screenWidth) {
     return Container(
       margin: EdgeInsets.only(right: screenWidth * 0.04),
       child: Column(
@@ -337,17 +368,30 @@ class _HomePageState extends State<HomePage> {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Image.asset(
-                imagePath,
-                width: screenWidth * 0.075,
-                height: screenWidth * 0.075,
-                fit: BoxFit.contain,
-              ),
+              child: category.image != null
+                  ? Image.network(
+                      category.image!,
+                      width: screenWidth * 0.075,
+                      height: screenWidth * 0.075,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        'assets/images/pharmacy_logo.png',
+                        width: screenWidth * 0.075,
+                        height: screenWidth * 0.075,
+                        fit: BoxFit.contain,
+                      ),
+                    )
+                  : Image.asset(
+                      'assets/images/pharmacy_logo.png',
+                      width: screenWidth * 0.075,
+                      height: screenWidth * 0.075,
+                      fit: BoxFit.contain,
+                    ),
             ),
           ),
           SizedBox(height: screenWidth * 0.02),
           Text(
-            title,
+            category.name,
             style: TextStyle(fontSize: screenWidth * 0.03),
             textAlign: TextAlign.center,
           ),
@@ -356,7 +400,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildPharmacyItem(String name, String rating, String address, String distance, bool isOpen, double screenWidth, double screenHeight) {
+  Widget _buildPharmacyItem(myPharmacy.Pharmacy pharmacy, double screenWidth, double screenHeight) {
     return Container(
       margin: EdgeInsets.only(bottom: screenHeight * 0.02),
       padding: EdgeInsets.all(screenWidth * 0.04),
@@ -382,13 +426,13 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Text(
-                    name,
+                    pharmacy.name,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.045),
                   ),
                   SizedBox(width: screenWidth * 0.02),
                   Icon(Icons.star, color: Colors.amber, size: screenWidth * 0.04),
                   Text(
-                    rating,
+                    '4.5', // Placeholder: Add rating to Pharmacy model
                     style: TextStyle(fontSize: screenWidth * 0.035),
                   ),
                 ],
@@ -396,13 +440,13 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenHeight * 0.007),
                 decoration: BoxDecoration(
-                  color: isOpen ? Colors.green.shade100 : Colors.red.shade100,
+                  color: true ? Colors.green.shade100 : Colors.red.shade100, // Placeholder: Add isOpen to model
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  isOpen ? 'Open now' : 'Closed',
+                  true ? 'Open now' : 'Closed', // Placeholder: Add isOpen to model
                   style: TextStyle(
-                    color: isOpen ? Colors.green.shade700 : Colors.red.shade700,
+                    color: true ? Colors.green.shade700 : Colors.red.shade700,
                     fontSize: screenWidth * 0.03,
                     fontWeight: FontWeight.bold,
                   ),
@@ -415,11 +459,11 @@ class _HomePageState extends State<HomePage> {
             children: [
               Icon(Icons.location_on, color: Colors.red, size: screenWidth * 0.04),
               Text(
-                ' $address',
+                ' ${pharmacy.address ?? 'Unknown Address'}',
                 style: TextStyle(fontSize: screenWidth * 0.035),
               ),
               Text(
-                ' • $distance',
+                ' • 0.8 km away', // Placeholder: Add distance calculation
                 style: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.035),
               ),
             ],
@@ -429,7 +473,12 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: pharmacy.phoneNumber != null
+                      ? () {
+                          // Implement call functionality (e.g., launch phone dialer)
+                          print('Call ${pharmacy.phoneNumber}');
+                        }
+                      : null,
                   icon: Icon(Icons.call, color: Colors.white, size: screenWidth * 0.045),
                   label: Text('Call', style: TextStyle(color: Colors.white, fontSize: screenWidth * 0.035)),
                   style: ElevatedButton.styleFrom(
@@ -444,7 +493,10 @@ class _HomePageState extends State<HomePage> {
               SizedBox(width: screenWidth * 0.03),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Implement view functionality (e.g., navigate to pharmacy details)
+                    print('View pharmacy ${pharmacy.name}');
+                  },
                   icon: Icon(Icons.menu_book, color: Colors.blue, size: screenWidth * 0.045),
                   label: Text('View', style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.035)),
                   style: OutlinedButton.styleFrom(

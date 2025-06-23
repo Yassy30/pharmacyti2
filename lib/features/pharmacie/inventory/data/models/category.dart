@@ -4,29 +4,30 @@ class Category {
   final String status;
   final String? image;
 
-  Category({ 
+  Category({
     this.id,
     required this.name,
     required this.status,
     this.image,
   });
 
-  // Convert Category to JSON for Supabase
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'status': status.toLowerCase(), // Ensure it matches the enum in the database ('available' or 'out_of_stock')
+      'status': status,
       'image': image,
     };
   }
 
-  // Create a Category from JSON (from Supabase response)
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
-      id: json['id'],
-      name: json['name'],
-      status: json['status'],
-      image: json['image'],
+      id: json['id'] as int?,
+      name: json['name'] as String,
+      status: json['status'] as String,
+      image: json['image'] as String?,
     );
   }
+
+  @override
+  String toString() => 'Category(id: $id, name: $name, status: $status, image: $image)';
 }
