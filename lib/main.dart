@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pharmaciyti/features/client/home/viewmodel/home_viewmodel.dart';
+import 'package:pharmaciyti/features/client/search/viewmodel/search_viewmodel.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:pharmaciyti/features/auth/view/login.dart';
@@ -60,6 +61,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MedicineViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => UserViewModel()),
+        ChangeNotifierProvider(create: (_) => SearchViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

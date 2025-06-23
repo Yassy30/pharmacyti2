@@ -1,5 +1,4 @@
-
-// supabase_service.dart
+import 'package:pharmaciyti/features/pharmacie/inventory/data/models/medicine.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart' as myUser;
 import 'package:pharmaciyti/features/pharmacie/inventory/data/models/category.dart' as myCategory;
@@ -40,31 +39,31 @@ class SupabaseService {
   }
 
   // Fetch categories
-Future<List<myCategory.Category>> getCategories() async {
-  try {
-    print('Fetching categories...');
-    final response = await _client
-        .from('category')
-        .select('id, name, image, status'); // Include status for debugging
+  Future<List<myCategory.Category>> getCategories() async {
+    try {
+      print('Fetching categories...');
+      final response = await _client
+          .from('category')
+          .select('id, name, image, status');
 
-    print('Categories response: $response');
+      print('Categories response: $response');
 
-    if (response is! List || response.isEmpty) {
-      print('No categories found');
+      if (response is! List || response.isEmpty) {
+        print('No categories found');
+        return [];
+      }
+
+      final categories = response
+          .map((json) => myCategory.Category.fromJson(json as Map<String, dynamic>))
+          .toList();
+      
+      print('Parsed ${categories.length} categories: $categories');
+      return categories;
+    } catch (e) {
+      print('Error fetching categories: $e');
       return [];
     }
-
-    final categories = response
-        .map((json) => myCategory.Category.fromJson(json as Map<String, dynamic>))
-        .toList();
-    
-    print('Parsed ${categories.length} categories: $categories');
-    return categories;
-  } catch (e) {
-    print('Error fetching categories: $e');
-    return [];
   }
-}
 
   // Fetch pharmacies
   Future<List<myPharmacy.Pharmacy>> getPharmacies() async {
@@ -92,6 +91,52 @@ Future<List<myCategory.Category>> getCategories() async {
     } catch (e) {
       print('Error fetching pharmacies: $e');
       return [];
+    }
+  }
+
+  // Fetch medicines
+  Future<List<Medicine>> getMedicines({
+    String? query,
+    String? filter,
+  }) async {
+    try {
+      print('Fetching medicines with query: $query, filter: $filter');
+      var supabaseQuery = _client
+          .from('medicine')
+          .select('id, name, category_id, price, quantity, status, image, description, status_prescription');
+
+      // Apply search query
+      if (query != null && query.isNotEmpty) {
+        supabaseQuery = supabaseQuery.ilike('name', '%$query%');
+      }
+
+      // Apply filters
+      if (filter == 'Prescription') {
+        supabaseQuery = supabaseQuery.eq('status_prescription', true);
+      }
+      // Price filter is handled in-memory
+      // Rating and Distance filters are placeholders
+
+      final response = await supabaseQuery;
+      print('Medicines response: $response');
+      if (response.isEmpty) {
+        print('No medicines found');
+        return [];
+      }
+      var medicines = response
+          .map((json) => Medicine.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      // Apply Price filter in-memory
+      if (filter == 'Price') {
+        medicines.sort((a, b) => a.price.compareTo(b.price));
+      }
+
+      print('Parsed ${medicines.length} medicines');
+      return medicines;
+    } catch (e) {
+      print('Error fetching medicines: $e');
+      throw Exception('Failed to fetch medicines: $e');
     }
   }
 

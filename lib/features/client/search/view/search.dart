@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pharmaciyti/features/client/search/viewmodel/search_viewmodel.dart';
+import 'package:pharmaciyti/features/pharmacie/inventory/data/models/medicine.dart';
 
 class SearchPage extends StatefulWidget {
   final String initialQuery;
@@ -10,15 +13,17 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  late String _searchQuery;
-  String? _selectedFilter;
   late TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _searchQuery = widget.initialQuery;
-    _controller = TextEditingController(text: _searchQuery);
+    _controller = TextEditingController(text: widget.initialQuery);
+    // Initialize search with initial query
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SearchViewModel>(context, listen: false)
+          .updateSearchQuery(widget.initialQuery);
+    });
   }
 
   @override
@@ -31,6 +36,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final viewModel = Provider.of<SearchViewModel>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -69,9 +75,7 @@ class _SearchPageState extends State<SearchPage> {
                             child: TextField(
                               controller: _controller,
                               onChanged: (value) {
-                                setState(() {
-                                  _searchQuery = value;
-                                });
+                                viewModel.updateSearchQuery(value);
                               },
                               decoration: InputDecoration(
                                 hintText: "Search for medicines, pharmacies...",
@@ -107,7 +111,7 @@ class _SearchPageState extends State<SearchPage> {
                       icon: Icon(Icons.tune, color: Colors.grey[700], size: screenWidth * 0.07),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Filter options not implemented yet')),
+                          SnackBar(content: Text('Advanced filter options not implemented yet')),
                         );
                       },
                     ),
@@ -124,21 +128,46 @@ class _SearchPageState extends State<SearchPage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildFilterButton("Prescription", screenWidth),
+                    _buildFilterButton("Prescription", screenWidth, viewModel),
                     SizedBox(width: screenWidth * 0.025),
-                    _buildFilterButton("Distance", screenWidth),
+                    _buildFilterButton("Distance", screenWidth, viewModel),
                     SizedBox(width: screenWidth * 0.025),
-                    _buildFilterButton("Price", screenWidth),
+                    _buildFilterButton("Price", screenWidth, viewModel),
                     SizedBox(width: screenWidth * 0.025),
-                    _buildFilterButton("Rating", screenWidth),
+                    _buildFilterButton("Rating", screenWidth, viewModel),
                   ],
                 ),
               ),
             ),
             Expanded(
-              child: _searchQuery.isNotEmpty
-                  ? _buildNoResultsFound(screenWidth, screenHeight)
-                  : _buildInitialMessage(screenWidth),
+              child: viewModel.isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : viewModel.errorMessage != null
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                viewModel.errorMessage!,
+                                style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.red),
+                              ),
+                              TextButton(
+                                onPressed: () => viewModel.fetchMedicines(),
+                                child: Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : viewModel.medicines.isEmpty
+                          ? _buildNoResultsFound(screenWidth, screenHeight, viewModel.searchQuery, viewModel.selectedFilter)
+                          : ListView.builder(
+                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                              itemCount: viewModel.medicines.length,
+                              itemBuilder: (context, index) {
+                                final medicine = viewModel.medicines[index];
+                                return _buildMedicineItem(medicine, screenWidth, screenHeight);
+                              },
+                            ),
             ),
           ],
         ),
@@ -146,13 +175,11 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildFilterButton(String label, double screenWidth) {
-    bool isSelected = _selectedFilter == label;
+  Widget _buildFilterButton(String label, double screenWidth, SearchViewModel viewModel) {
+    bool isSelected = viewModel.selectedFilter == label;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedFilter = isSelected ? null : label;
-        });
+        viewModel.updateFilter(isSelected ? null : label);
       },
       child: Container(
         height: screenWidth * 0.12,
@@ -194,22 +221,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildInitialMessage(double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-      child: Text(
-        _selectedFilter != null
-            ? 'Filtered by: $_selectedFilter'
-            : 'Enter a search term or select a filter',
-        style: TextStyle(
-          fontSize: screenWidth * 0.04,
-          color: Colors.grey[700],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoResultsFound(double screenWidth, double screenHeight) {
+  Widget _buildNoResultsFound(double screenWidth, double screenHeight, String searchQuery, String? selectedFilter) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -221,7 +233,9 @@ class _SearchPageState extends State<SearchPage> {
           ),
           SizedBox(height: screenHeight * 0.02),
           Text(
-            'No medicine found for "$_searchQuery".',
+            searchQuery.isNotEmpty || selectedFilter != null
+                ? 'No medicine found for "${searchQuery.isNotEmpty ? searchQuery : selectedFilter}".'
+                : 'Enter a search term or select a filter',
             style: TextStyle(
               fontSize: screenWidth * 0.05,
               fontWeight: FontWeight.w600,
@@ -235,6 +249,112 @@ class _SearchPageState extends State<SearchPage> {
               fontSize: screenWidth * 0.04,
               color: Colors.grey[600],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMedicineItem(Medicine medicine, double screenWidth, double screenHeight) {
+    return Container(
+      margin: EdgeInsets.only(bottom: screenHeight * 0.02),
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: screenWidth * 0.2,
+            height: screenWidth * 0.2,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: medicine.image != null
+                ? Image.network(
+                    medicine.image!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      Icons.medication,
+                      size: screenWidth * 0.1,
+                      color: Colors.grey[600],
+                    ),
+                  )
+                : Icon(
+                    Icons.medication,
+                    size: screenWidth * 0.1,
+                    color: Colors.grey[600],
+                  ),
+          ),
+          SizedBox(width: screenWidth * 0.04),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  medicine.name,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.045,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.005),
+                Text(
+                  '\$${medicine.price.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.04,
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.005),
+                if (medicine.statusPrescription)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.02,
+                      vertical: screenHeight * 0.005,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'Prescription Required',
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.035,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ),
+                SizedBox(height: screenHeight * 0.005),
+                Text(
+                  'In stock: ${medicine.quantity}',
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.035,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.add_shopping_cart, color: Colors.blue[700], size: screenWidth * 0.07),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Added ${medicine.name} to cart')),
+              );
+            },
           ),
         ],
       ),
