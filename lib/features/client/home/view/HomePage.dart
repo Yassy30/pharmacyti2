@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../search/view/search.dart';
 import '../../cart/view/cart.dart';
 import 'package:pharmaciyti/features/client/profile/view/profile_client.dart';
 import 'package:pharmaciyti/features/client/home/viewmodel/home_viewmodel.dart';
 import 'package:pharmaciyti/features/pharmacie/inventory/data/models/category.dart' as myCategory;
 import 'package:pharmaciyti/features/client/home/data/models/pharmacy.dart' as myPharmacy;
+import 'map_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -24,7 +26,6 @@ class _HomePageState extends State<HomePage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final viewModel = Provider.of<HomeViewModel>(context);
 
-    // Define the screens dynamically to ensure they use the latest context and state
     final List<Widget> screens = [
       _buildHomeContent(context, viewModel),
       SearchPage(initialQuery: _searchQuery),
@@ -440,11 +441,11 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenHeight * 0.007),
                 decoration: BoxDecoration(
-                  color: true ? Colors.green.shade100 : Colors.red.shade100, // Placeholder: Add isOpen to model
+                  color: true ? Colors.green.shade100 : Colors.red.shade100, // Placeholder: Add isOpen
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  true ? 'Open now' : 'Closed', // Placeholder: Add isOpen to model
+                  true ? 'Open now' : 'Closed', // Placeholder: Add isOpen
                   style: TextStyle(
                     color: true ? Colors.green.shade700 : Colors.red.shade700,
                     fontSize: screenWidth * 0.03,
@@ -474,9 +475,21 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: pharmacy.phoneNumber != null
-                      ? () {
-                          // Implement call functionality (e.g., launch phone dialer)
-                          print('Call ${pharmacy.phoneNumber}');
+                      ? () async {
+                          final Uri phoneUri = Uri(scheme: 'tel', path: pharmacy.phoneNumber);
+                          try {
+                            if (await canLaunchUrl(phoneUri)) {
+                              await launchUrl(phoneUri);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Cannot launch phone dialer')),
+                              );
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error launching dialer: $e')),
+                            );
+                          }
                         }
                       : null,
                   icon: Icon(Icons.call, color: Colors.white, size: screenWidth * 0.045),
@@ -494,8 +507,12 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    // Implement view functionality (e.g., navigate to pharmacy details)
-                    print('View pharmacy ${pharmacy.name}');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MapPage(pharmacy: pharmacy),
+                      ),
+                    );
                   },
                   icon: Icon(Icons.menu_book, color: Colors.blue, size: screenWidth * 0.045),
                   label: Text('View', style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.035)),
