@@ -5,6 +5,7 @@ import '../../search/view/search.dart';
 import '../../cart/view/cart.dart';
 import 'package:pharmaciyti/features/client/profile/view/profile_client.dart';
 import 'package:pharmaciyti/features/client/home/viewmodel/home_viewmodel.dart';
+import 'package:pharmaciyti/features/client/search/viewmodel/search_viewmodel.dart';
 import 'package:pharmaciyti/features/pharmacie/inventory/data/models/category.dart' as myCategory;
 import 'package:pharmaciyti/features/client/home/data/models/pharmacy.dart' as myPharmacy;
 import 'map_page.dart';
@@ -141,9 +142,11 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                         IconButton(
-                          icon: Icon(Icons.logout_outlined, color: Colors.blue, size: screenWidth * 0.07),
+                          icon: Icon(Icons.search, color: Colors.blue, size: screenWidth * 0.07),
                           onPressed: () {
-                            viewModel.signOut(context);
+                            setState(() {
+                              _selectedIndex = 1;
+                            });
                           },
                         ),
                       ],
@@ -164,40 +167,49 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.search, color: Colors.grey, size: screenWidth * 0.06),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                            viewModel.updateSearchQuery(value);
-                          });
-                        },
-                        onSubmitted: (value) {
-                          setState(() {
-                            _selectedIndex = 1;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'Search for medicines, pharmacies...',
-                          border: InputBorder.none,
-                          hintStyle: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.037),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.document_scanner_outlined, color: Colors.grey, size: screenWidth * 0.06),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.filter_list, color: Colors.grey, size: screenWidth * 0.06),
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
+                // child: Row(
+                //   children: [
+                //     Icon(Icons.search, color: Colors.grey, size: screenWidth * 0.06),
+                //     SizedBox(width: 8),
+                //     Expanded(
+                //       child: TextField(
+                //         onChanged: (value) {
+                //           setState(() {
+                //             _searchQuery = value;
+                //             // Update SearchViewModel for consistency
+                //             Provider.of<SearchViewModel>(context, listen: false).updateSearchQuery(value);
+                //           });
+                //         },
+                //         onSubmitted: (value) {
+                //           setState(() {
+                //             _selectedIndex = 1;
+                //           });
+                //         },
+                //         decoration: InputDecoration(
+                //           hintText: 'Search for medicines, pharmacies...',
+                //           border: InputBorder.none,
+                //           hintStyle: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.037),
+                //         ),
+                //       ),
+                //     ),
+                //     IconButton(
+                //       icon: Icon(Icons.document_scanner_outlined, color: Colors.grey, size: screenWidth * 0.06),
+                //       onPressed: () {
+                //         ScaffoldMessenger.of(context).showSnackBar(
+                //           SnackBar(content: Text('Document scanner not implemented yet')),
+                //         );
+                //       },
+                //     ),
+                //     IconButton(
+                //       icon: Icon(Icons.filter_list, color: Colors.grey, size: screenWidth * 0.06),
+                //       onPressed: () {
+                //         ScaffoldMessenger.of(context).showSnackBar(
+                //           SnackBar(content: Text('Advanced filter options not implemented yet')),
+                //         );
+                //       },
+                //     ),
+                //   ],
+                // ),
               ),
             ),
             Padding(

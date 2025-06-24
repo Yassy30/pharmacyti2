@@ -33,6 +33,7 @@ CREATE TABLE medicine (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     category_id INTEGER REFERENCES category(id) ON DELETE SET NULL,
+    user_id INTEGER REFERENCES user(id) ON DELETE SET NULL, 
     price DECIMAL(10, 2) NOT NULL,
     quantity INTEGER NOT NULL,
     status status_type NOT NULL,
