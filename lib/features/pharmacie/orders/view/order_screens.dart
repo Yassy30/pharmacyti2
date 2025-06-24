@@ -453,7 +453,6 @@ class _OrderScreensState extends State<OrderScreens>
   int _selectedNavIndex = 1;
   final _supabase = Supabase.instance.client;
   bool _hasCheckedAuth = false;
-
   @override
   void initState() {
     super.initState();
@@ -462,7 +461,6 @@ class _OrderScreensState extends State<OrderScreens>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Check authentication and show snackbar after widget is initialized
     if (_supabase.auth.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please log in to view orders')),
