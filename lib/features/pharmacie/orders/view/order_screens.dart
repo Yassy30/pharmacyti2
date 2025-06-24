@@ -436,7 +436,7 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/features/pharmacie/dashboard/view/Dashboard.dart';
-import 'package:pharmaciyti/features/pharmacie/profil/view/Profile.dart';
+import 'package:pharmaciyti/features/pharmacie/profil/view/Profile_pharmacy.dart';
 import 'package:pharmaciyti/features/pharmacie/orders/view/order_details_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
