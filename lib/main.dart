@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:pharmaciyti/features/client/cart/viewmodel/cart_viewmodel.dart';
 import 'package:pharmaciyti/features/client/home/viewmodel/home_viewmodel.dart';
 import 'package:pharmaciyti/features/client/search/viewmodel/search_viewmodel.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => UserViewModel()),
         ChangeNotifierProvider(create: (_) => SearchViewModel()),
+        ChangeNotifierProvider(create: (_) => CartViewModel()), // Add this line
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

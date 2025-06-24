@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/features/client/cart/viewmodel/cart_viewmodel.dart';
+import 'package:provider/provider.dart';
 import 'checkout.dart';
 
 class CartPage extends StatefulWidget {
@@ -7,69 +9,13 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  // Sample data for cart items
-  List<CartItem> cartItems = [
-    CartItem(
-      id: 1,
-      name: 'Doliprane 500mg',
-      price: 22.00,
-      quantity: 1,
-      pharmacy: 'Pharmacy Al Baraka',
-      distance: '1.2 km',
-      image: 'assets/images/a_gen_cream.jpeg',
-      isSelected: true,
-    ),
-    CartItem(
-      id: 2,
-      name: 'Vitamin C',
-      price: 85.00,
-      quantity: 1,
-      pharmacy: 'Pharmacy Al Baraka',
-      distance: '1.2 km',
-      image: 'assets/images/a_gen_cream.jpeg',
-      isSelected: true,
-    ),
-    CartItem(
-      id: 3,
-      name: 'Doliprane 500mg',
-      price: 22.00,
-      quantity: 1,
-      pharmacy: 'Pharmacy Al Baraka',
-      distance: '1.2 km',
-      image: 'assets/images/a_gen_cream.jpeg',
-      isSelected: false,
-    ),
-  ];
-
-  bool selectAll = false;
-  bool prescriptionSelected = false;  // Add this line
-
-  @override
-  void initState() {
-    super.initState();
-    _updateSelectAll();
-  }
-
-  void _updateSelectAll() {
-    selectAll = cartItems.every((item) => item.isSelected) && prescriptionSelected;
-  }
-
-  double get subtotal {
-    return cartItems
-        .where((item) => item.isSelected)
-        .fold(0, (sum, item) => sum + (item.price * item.quantity));
-  }
-
-  double get deliveryFee {
-    return 10.0; // Fixed delivery fee
-  }
-
-  double get total {
-    return subtotal + deliveryFee;
-  }
+  bool prescriptionSelected = false;
 
   @override
   Widget build(BuildContext context) {
+    final cartViewModel = Provider.of<CartViewModel>(context);
+    final selectAll = cartViewModel.cartItems.every((item) => item.isSelected) && prescriptionSelected;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -98,11 +44,8 @@ class _CartPageState extends State<CartPage> {
                   value: selectAll,
                   onChanged: (value) {
                     setState(() {
-                      selectAll = value ?? false;
-                      prescriptionSelected = selectAll; // Add this line
-                      for (var item in cartItems) {
-                        item.isSelected = selectAll;
-                      }
+                      prescriptionSelected = value ?? false;
+                      cartViewModel.toggleSelectAll(value ?? false);
                     });
                   },
                   activeColor: Colors.blue,
@@ -121,7 +64,6 @@ class _CartPageState extends State<CartPage> {
             child: ListView(
               padding: EdgeInsets.all(16),
               children: [
-                // Prescription section
                 Container(
                   margin: EdgeInsets.only(bottom: 16),
                   padding: EdgeInsets.all(16),
@@ -137,7 +79,7 @@ class _CartPageState extends State<CartPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Uploaded perscription',
+                            'Uploaded prescription',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 16,
@@ -150,7 +92,7 @@ class _CartPageState extends State<CartPage> {
                                 prescriptionSelected = value ?? false;
                               });
                             },
-                            activeColor: Colors.blue,  // Add this line
+                            activeColor: Colors.blue,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -192,14 +134,10 @@ class _CartPageState extends State<CartPage> {
                     ],
                   ),
                 ),
-                
-                // Cart items
-                ...cartItems.map((item) => _buildCartItem(item)).toList(),
+                ...cartViewModel.cartItems.map((item) => _buildCartItem(item, cartViewModel)).toList(),
               ],
             ),
           ),
-          
-          // Bottom total and checkout section
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -220,14 +158,14 @@ class _CartPageState extends State<CartPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${total.toStringAsFixed(0)} MAD',
+                      '${cartViewModel.total.toStringAsFixed(0)} MAD',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
                     Text(
-                      'Livraison: ${deliveryFee.toStringAsFixed(0)} MAD',
+                      'Livraison: ${cartViewModel.deliveryFee.toStringAsFixed(0)} MAD',
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 12,
@@ -241,9 +179,9 @@ class _CartPageState extends State<CartPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => CheckoutPage(
-                          subtotal: subtotal,
-                          deliveryFee: deliveryFee,
-                          selectedItems: cartItems.where((item) => item.isSelected).toList(),
+                          subtotal: cartViewModel.subtotal,
+                          deliveryFee: cartViewModel.deliveryFee,
+                          selectedItems: cartViewModel.cartItems.where((item) => item.isSelected).toList(),
                         ),
                       ),
                     );
@@ -271,7 +209,7 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildCartItem(CartItem item) {
+  Widget _buildCartItem(CartItem item, CartViewModel cartViewModel) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.all(16),
@@ -283,16 +221,12 @@ class _CartPageState extends State<CartPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Checkbox
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: Checkbox(
               value: item.isSelected,
               onChanged: (value) {
-                setState(() {
-                  item.isSelected = value ?? false;
-                  _updateSelectAll(); // Update the "All" checkbox state
-                });
+                cartViewModel.toggleItemSelection(item.id ?? -1);
               },
               activeColor: Colors.blue,
               shape: RoundedRectangleBorder(
@@ -300,8 +234,6 @@ class _CartPageState extends State<CartPage> {
               ),
             ),
           ),
-          
-          // Product image
           Container(
             width: 60,
             height: 60,
@@ -309,15 +241,21 @@ class _CartPageState extends State<CartPage> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey.shade200),
             ),
-            child: Image.asset(
-              item.image,
-              fit: BoxFit.contain,
-            ),
+            child: item.image != null
+                ? Image.network(
+                    item.image!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      'assets/images/a_gen_cream.jpeg',
+                      fit: BoxFit.contain,
+                    ),
+                  )
+                : Image.asset(
+                    'assets/images/a_gen_cream.jpeg',
+                    fit: BoxFit.contain,
+                  ),
           ),
-          
           SizedBox(width: 12),
-          
-          // Product details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,11 +291,7 @@ class _CartPageState extends State<CartPage> {
                         _buildQuantityButton(
                           icon: Icons.remove,
                           onPressed: () {
-                            if (item.quantity > 1) {
-                              setState(() {
-                                item.quantity--;
-                              });
-                            }
+                            cartViewModel.updateQuantity(item.id ?? 0, item.quantity - 1);
                           },
                         ),
                         Container(
@@ -372,9 +306,7 @@ class _CartPageState extends State<CartPage> {
                         _buildQuantityButton(
                           icon: Icons.add,
                           onPressed: () {
-                            setState(() {
-                              item.quantity++;
-                            });
+                            cartViewModel.updateQuantity(item.id ?? 0, item.quantity + 1);
                           },
                         ),
                       ],
@@ -407,27 +339,4 @@ class _CartPageState extends State<CartPage> {
       ),
     );
   }
-}
-
-
-class CartItem {
-  final int id;
-  final String name;
-  final double price;
-  int quantity;
-  final String pharmacy;
-  final String distance;
-  final String image;
-  bool isSelected;
-
-  CartItem({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.quantity,
-    required this.pharmacy,
-    required this.distance,
-    required this.image,
-    required this.isSelected,
-  });
 }

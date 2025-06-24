@@ -1,0 +1,91 @@
+import 'package:pharmaciyti/features/client/cart/viewmodel/cart_viewmodel.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class Order {
+  final int id;
+  final String userName;
+  final String userPhone;
+  final String userAddress;
+  final List<CartItem> items;
+  final double subtotal;
+  final double deliveryFee;
+  final double total;
+  final String paymentMethod; // Expected: "Cash on Delivery" or "Online Payment"
+  final String pharmacy;
+  final String estimatedDelivery;
+  final DateTime orderDate;
+
+  Order({
+    required this.id,
+    required this.userName,
+    required this.userPhone,
+    required this.userAddress,
+    required this.items,
+    required this.subtotal,
+    required this.deliveryFee,
+    required this.total,
+    required this.paymentMethod,
+    required this.pharmacy,
+    required this.estimatedDelivery,
+    required this.orderDate,
+  });
+}
+
+class OrderRepository {
+  final supabase = Supabase.instance.client;
+
+  Future<void> saveOrder(Order order) async {
+    try {
+      // Récupérer l'ID de l'utilisateur connecté
+      final user = supabase.auth.currentUser;
+      if (user == null) {
+        throw Exception('Utilisateur non connecté');
+      }
+
+      // Mapper la méthode de paiement pour correspondre à l'enum Supabase
+      final paymentEnumValue = order.paymentMethod == 'Cash on Delivery' ? 'cash' : 'online';
+
+      // 1. Ajouter la commande
+      final orderInsert = await supabase.from('orders').insert({
+        'date': order.orderDate.toIso8601String(),
+        'statut': 'pending',
+        'price_total': order.total,
+        'quantity': order.items.fold(0, (sum, item) => sum + item.quantity),
+        'type_payment': paymentEnumValue,
+        'user_id': user.id,
+      }).select().single();
+
+      final orderId = orderInsert['id'];
+
+      // 2. Ajouter les médicaments commandés
+      for (final item in order.items) {
+        await supabase.from('order_medicines').insert({
+          'order_id': orderId,
+          'medicine_id': item.id,
+        });
+      }
+
+      // 3. Ajouter les infos de livraison
+      await supabase.from('delivery').insert({
+        'date_delivery': order.orderDate.toIso8601String(),
+        'date': order.orderDate.toIso8601String(),
+        'localisation_delivery': order.userAddress,
+        'order_id': orderId,
+      });
+
+      // 4. Ajouter le paiement
+      await supabase.from('payments').insert({
+        'sum': order.total,
+        'method': paymentEnumValue,
+        'date': order.orderDate.toIso8601String(),
+        'status': 'En attente',
+        'order_id': orderId,
+      });
+
+      print('✅ Commande enregistrée avec succès !');
+    } catch (e) {
+      print('❌ Exception lors de la sauvegarde de la commande: $e');
+      rethrow;
+    }
+  }
+}

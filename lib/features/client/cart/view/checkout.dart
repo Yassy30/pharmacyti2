@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pharmaciyti/features/client/cart/view/cart.dart';
-import '../../payment/view/AddCard.dart';
+import 'package:pharmaciyti/features/client/cart/viewmodel/cart_viewmodel.dart';
+import 'package:pharmaciyti/features/client/order/order_confirmation.dart';
+import 'package:pharmaciyti/features/client/order/order_repository.dart';
+import 'package:pharmaciyti/features/client/payment/view/AddCard.dart';
 
 class CheckoutPage extends StatefulWidget {
   final double subtotal;
@@ -20,9 +22,12 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   int _paymentMethod = 1; // 0 for Cash on Delivery, 1 for Online Payment
+  final _orderRepository = OrderRepository();
 
   @override
   Widget build(BuildContext context) {
+    final total = widget.subtotal + widget.deliveryFee;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -45,28 +50,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Address section
-            _buildAddressSection(),
-
+            _buildUserInfoSection(),
             Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
-
-            // Item details section
             _buildItemDetailsSection(),
-
             Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
-
-            // Payment methods section
-            _buildPaymentMethodsSection(),
-
-            Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
-
-            // Delivery details section
             _buildDeliveryDetailsSection(),
-
             Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
-
-            // Subtotal section
-            _buildSubtotalSection(),
+            _buildPaymentMethodsSection(),
+            Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+            _buildSubtotalSection(total),
           ],
         ),
       ),
@@ -85,7 +77,33 @@ class _CheckoutPageState extends State<CheckoutPage> {
         ),
         child: ElevatedButton(
           onPressed: () {
-            // Handle order confirmation
+            // Save order to database
+            final order = Order(
+              id: DateTime.now().millisecondsSinceEpoch,
+              userName: 'Fatima Bichouarine',
+              userPhone: '+212 695 30 41 87',
+              userAddress: '123 Mohammed V Avenue, Agadir',
+              items: widget.selectedItems,
+              subtotal: widget.subtotal,
+              deliveryFee: widget.deliveryFee,
+              total: total,
+              paymentMethod: _paymentMethod == 0 ? 'Cash on Delivery' : 'Online Payment',
+              pharmacy: widget.selectedItems.isNotEmpty ? widget.selectedItems.first.pharmacy : 'Unknown',
+              estimatedDelivery: '30-45 min',
+              orderDate: DateTime.now(),
+            );
+            _orderRepository.saveOrder(order);
+
+            // Navigate to Order Confirmation page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderConfirmationPage(
+                  orderId: order.id,
+                  estimatedDelivery: order.estimatedDelivery,
+                ),
+              ),
+            );
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
@@ -107,27 +125,35 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _buildAddressSection() {
+  Widget _buildUserInfoSection() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.location_on, color: Colors.grey),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Text(
+            'User Information',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.person, color: Colors.grey),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Fatima Bichouarine',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         fontSize: 16,
                       ),
                     ),
-                    SizedBox(width: 8),
                     Text(
                       '+212 695 30 41 87',
                       style: TextStyle(
@@ -135,19 +161,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         fontSize: 14,
                       ),
                     ),
+                    Text(
+                      '123 Mohammed V Avenue, Agadir',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
+                    ),
                   ],
                 ),
-                Text(
-                  '123 Mohammed V Avenue, Agadir',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              Icon(Icons.edit, color: Colors.grey, size: 16),
+            ],
           ),
-          Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
         ],
       ),
     );
@@ -163,7 +189,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Item details',
+                'Item Details',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -179,78 +205,72 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ],
           ),
           SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(8),
+          ...widget.selectedItems.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade200),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: item.image != null
+                          ? Image.network(
+                              item.image!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => Image.asset(
+                                'assets/images/a_gen_cream.jpeg',
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/images/a_gen_cream.jpeg',
+                              fit: BoxFit.contain,
+                            ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            '${item.price.toStringAsFixed(0)} MAD x ${item.quantity}',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                child: Image.asset(
-                  'assets/images/a_gen_cream.jpeg',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              SizedBox(width: 16),
-              Text(
-                '22 MAD',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                ' x1',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
-              ),
-              SizedBox(width: 16),
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Image.asset(
-                  'assets/images/a_gen_cream.jpeg',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              SizedBox(width: 16),
-              Text(
-                '85 MAD',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                ' x1',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
+              )),
         ],
       ),
     );
   }
 
   Widget _buildDeliveryDetailsSection() {
+    final pharmacy = widget.selectedItems.isNotEmpty ? widget.selectedItems.first.pharmacy : 'Unknown';
+    final distance = widget.selectedItems.isNotEmpty ? widget.selectedItems.first.distance : 'N/A';
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Delivery details:',
+            'Delivery Details',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -261,7 +281,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Pharmacy:', style: TextStyle(color: Colors.grey)),
-              Text('Al Baraka Pharmacy', style: TextStyle(fontWeight: FontWeight.w500)),
+              Text(pharmacy, style: TextStyle(fontWeight: FontWeight.w500)),
             ],
           ),
           SizedBox(height: 8),
@@ -269,7 +289,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Distance:', style: TextStyle(color: Colors.grey)),
-              Text('1.2 km', style: TextStyle(fontWeight: FontWeight.w500)),
+              Text(distance, style: TextStyle(fontWeight: FontWeight.w500)),
             ],
           ),
           SizedBox(height: 8),
@@ -285,41 +305,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Delivery Fee:', style: TextStyle(color: Colors.grey)),
-              Text('${widget.deliveryFee.toStringAsFixed(2)} MAD', 
-                   style: TextStyle(fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubtotalSection() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Subtotal:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Total:', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(
-                '${widget.subtotal} MAD',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.blue,
-                ),
-              ),
+              Text('${widget.deliveryFee.toStringAsFixed(0)} MAD', style: TextStyle(fontWeight: FontWeight.w500)),
             ],
           ),
         ],
@@ -334,44 +320,89 @@ class _CheckoutPageState extends State<CheckoutPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Payment methods:',
+            'Payment Methods',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
           ),
           SizedBox(height: 16),
-          Column(
-            children: [
-              RadioListTile<int>(
-                title: Text('Cash on Delivery'),
-                value: 0,
-                groupValue: _paymentMethod,
-                onChanged: (value) => setState(() => _paymentMethod = value!),
-                contentPadding: EdgeInsets.zero,
-              ),
-              RadioListTile<int>(
-                title: Row(
-                  children: [
-                    Text('Online Payment'),
-                    Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AddCardPage(),
-                          ),
-                        );
-                      },
-                      child: Text('+ Add a new card'),
-                    ),
-                  ],
+          RadioListTile<int>(
+            title: Text('Cash on Delivery'),
+            value: 0,
+            groupValue: _paymentMethod,
+            onChanged: (value) => setState(() => _paymentMethod = value!),
+            contentPadding: EdgeInsets.zero,
+            activeColor: Colors.blue,
+          ),
+          RadioListTile<int>(
+            title: Row(
+              children: [
+                Text('Online Payment'),
+                Spacer(),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddCardPage()),
+                    );
+                  },
+                  child: Text('+ Add a new card'),
                 ),
-                value: 1,
-                groupValue: _paymentMethod,
-                onChanged: (value) => setState(() => _paymentMethod = value!),
-                contentPadding: EdgeInsets.zero,
+              ],
+            ),
+            value: 1,
+            groupValue: _paymentMethod,
+            onChanged: (value) => setState(() => _paymentMethod = value!),
+            contentPadding: EdgeInsets.zero,
+            activeColor: Colors.blue,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubtotalSection(double total) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Order Summary',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Subtotal:', style: TextStyle(color: Colors.grey)),
+              Text('${widget.subtotal.toStringAsFixed(0)} MAD', style: TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Delivery Fee:', style: TextStyle(color: Colors.grey)),
+              Text('${widget.deliveryFee.toStringAsFixed(0)} MAD', style: TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Total:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                '${total.toStringAsFixed(0)} MAD',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.blue,
+                ),
               ),
             ],
           ),

@@ -46,7 +46,7 @@ class MedicineViewModel with ChangeNotifier {
         status: medicine.status,
         image: imageUrl ?? medicine.image,
         description: medicine.description,
-        statusPrescription: medicine.statusPrescription,
+        statusPrescription: medicine.statusPrescription, 
       );
       final newMedicine = await _supabaseService.addMedicine(medicineWithImage);
       _medicines.add(newMedicine);

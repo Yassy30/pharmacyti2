@@ -11,7 +11,7 @@ class Medicine {
   final double? rating;
 
   Medicine({
-    this.id,
+     this.id,
     required this.name,
     this.categoryId,
     required this.price,
