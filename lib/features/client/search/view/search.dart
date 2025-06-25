@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/features/client/cart/viewmodel/cart_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:camera/camera.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pharmaciyti/features/client/search/viewmodel/search_viewmodel.dart';
 import 'package:pharmaciyti/features/pharmacie/inventory/data/models/medicine.dart';
 
 class SearchPage extends StatefulWidget {
   final String initialQuery;
-
   const SearchPage({Key? key, this.initialQuery = ''}) : super(key: key);
-
   @override
   _SearchPageState createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
   late TextEditingController _controller;
+  List<CameraDescription> cameras = [];
 
   @override
   void initState() {
@@ -23,7 +26,196 @@ class _SearchPageState extends State<SearchPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<SearchViewModel>(context, listen: false)
           .updateSearchQuery(widget.initialQuery);
+      _initializeCamera();
     });
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('No cameras available')),
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      print('Error initializing camera: $e\nStack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to initialize camera')),
+        );
+      }
+    }
+  }
+
+  Future<bool> _checkCameraPermission() async {
+    try {
+      final status = await Permission.camera.status;
+      if (status.isDenied) {
+        final result = await Permission.camera.request();
+        if (!result.isGranted) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Camera permission denied')),
+            );
+          }
+          return false;
+        }
+      } else if (status.isPermanentlyDenied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Camera permission permanently denied. Please enable in settings.')),
+          );
+          await openAppSettings();
+        }
+        return false;
+      }
+      return true;
+    } catch (e, stackTrace) {
+      print('Error checking camera permission: $e\nStack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error checking camera permission')),
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<void> _scanPrescription() async {
+    if (!await _checkCameraPermission()) return;
+    if (cameras.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No camera available')),
+        );
+      }
+      return;
+    }
+
+    // Get the viewModel reference before navigation
+    final viewModel = Provider.of<SearchViewModel>(context, listen: false);
+    final currentContext = context; // Store context reference
+
+    final cameraController = CameraController(cameras[0], ResolutionPreset.low);
+    try {
+      await cameraController.initialize();
+      if (!mounted) return;
+
+      final result = await Navigator.push<XFile?>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CameraScreen(
+            cameraController: cameraController,
+          ),
+        ),
+      );
+
+      // Handle the result after navigation
+      if (result != null) {
+        await _handlePrescriptionImage(result, viewModel, currentContext);
+      }
+
+      // Dispose controller after navigation
+      await Future.delayed(Duration(milliseconds: 200));
+      await cameraController.dispose();
+    } catch (e, stackTrace) {
+      print('Error opening camera: $e\nStack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening camera')),
+        );
+      }
+      await cameraController.dispose();
+    }
+  }
+
+  Future<void> _handlePrescriptionImage(XFile image, SearchViewModel viewModel, BuildContext originalContext) async {
+    print('Picture taken: ${image.path}');
+    
+    try {
+      final pharmacyUserId = await _selectPharmacy(viewModel);
+      print('Selected pharmacy ID: $pharmacyUserId');
+      
+      if (pharmacyUserId != null) {
+        final imageFile = File(image.path);
+        
+        final imageData = await viewModel.uploadPrescriptionImage(imageFile, pharmacyUserId);
+        if (imageData != null) {
+          // Try the minimal version first (most likely to work)
+          final success = await viewModel.createPrescriptionOrderMinimal(pharmacyUserId, imageData['id']);
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(success
+                    ? 'Prescription sent to pharmacy!'
+                    : 'Failed to send prescription'),
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to upload prescription image')),
+            );
+          }
+        }
+      } else {
+        print('No pharmacy selected');
+      }
+    } catch (e, stackTrace) {
+      print('Error in prescription upload flow: $e\nStack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error uploading prescription')),
+        );
+      }
+    }
+  }
+
+  Future<String?> _selectPharmacy(SearchViewModel viewModel) async {
+    final pharmacies = await viewModel.fetchPharmacies();
+    if (pharmacies.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No pharmacies available')),
+        );
+      }
+      return null;
+    }
+
+    if (!mounted) return null;
+
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Select Pharmacy'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: pharmacies.map((pharmacy) {
+              return ListTile(
+                title: Text(pharmacy.name),
+                subtitle: Text(pharmacy.address ?? 'No address'),
+                trailing: pharmacy.rating != null && pharmacy.rating! > 0
+                    ? Text('Rating: ${pharmacy.rating!.toStringAsFixed(1)}')
+                    : null,
+                onTap: () => Navigator.pop(context, pharmacy.id),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -49,75 +241,64 @@ class _SearchPageState extends State<SearchPage> {
                 horizontal: screenWidth * 0.04,
                 vertical: screenHeight * 0.02,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: screenHeight * 0.07,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
-                            child: Icon(Icons.search, color: Colors.grey[600], size: screenWidth * 0.07),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              controller: _controller,
-                              onChanged: (value) {
-                                viewModel.updateSearchQuery(value);
-                              },
-                              decoration: InputDecoration(
-                                hintText: "Search for medicines, pharmacies...",
-                                hintStyle: TextStyle(color: Colors.grey[500]),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
-                              ),
-                              style: TextStyle(fontSize: screenWidth * 0.045),
-                            ),
-                          ),
-                        ],
-                      ),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
                     ),
-                  ),
-                  SizedBox(width: screenWidth * 0.03),
-                  Container(
-                    height: screenHeight * 0.07,
-                    width: screenHeight * 0.07,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 6,
-                          offset: Offset(0, 2),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: Colors.grey, size: screenWidth * 0.06),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        onChanged: (value) {
+                          viewModel.updateSearchQuery(value);
+                        },
+                        onSubmitted: (value) {
+                          viewModel.updateSearchQuery(value);
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search for medicines, pharmacies...',
+                          border: InputBorder.none,
+                          hintStyle: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.037),
                         ),
-                      ],
+                        style: TextStyle(fontSize: screenWidth * 0.045),
+                      ),
                     ),
-                    child: IconButton(
-                      icon: Icon(Icons.tune, color: Colors.grey[700], size: screenWidth * 0.07),
+                    IconButton(
+                      icon: Icon(Icons.document_scanner_outlined, color: Colors.grey, size: screenWidth * 0.06),
+                      onPressed: _scanPrescription,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.bug_report, color: Colors.grey, size: screenWidth * 0.06),
+                      onPressed: () {
+                        final user = Supabase.instance.client.auth.currentUser;
+                        print('Authenticated user: ${user?.id}');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('User: ${user?.id ?? "Not logged in"}')),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.filter_list, color: Colors.grey, size: screenWidth * 0.06),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Advanced filter options not implemented yet')),
                         );
                       },
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Padding(
@@ -160,7 +341,7 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                         )
                       : viewModel.medicines.isEmpty
-                          ? _buildNoResultsFound(screenWidth, screenHeight, viewModel.searchQuery, viewModel.selectedFilter)
+                          ? _buildNoResultsFound(screenWidth, screenHeight, viewModel.searchQuery, viewModel.filter)
                           : ListView.builder(
                               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                               itemCount: viewModel.medicines.length,
@@ -177,7 +358,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildFilterButton(String label, double screenWidth, SearchViewModel viewModel) {
-    bool isSelected = viewModel.selectedFilter == label;
+    bool isSelected = viewModel.filter == label;
     return GestureDetector(
       onTap: () {
         viewModel.updateFilter(isSelected ? null : label);
@@ -222,7 +403,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildNoResultsFound(double screenWidth, double screenHeight, String searchQuery, String? selectedFilter) {
+  Widget _buildNoResultsFound(double screenWidth, double screenHeight, String searchQuery, String? filter) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -234,8 +415,8 @@ class _SearchPageState extends State<SearchPage> {
           ),
           SizedBox(height: screenHeight * 0.02),
           Text(
-            searchQuery.isNotEmpty || selectedFilter != null
-                ? 'No medicine found for "${searchQuery.isNotEmpty ? searchQuery : selectedFilter}".'
+            searchQuery.isNotEmpty || filter != null
+                ? 'No medicine found for "${searchQuery.isNotEmpty ? searchQuery : filter}".'
                 : 'Enter a search term or select a filter',
             style: TextStyle(
               fontSize: screenWidth * 0.05,
@@ -357,6 +538,113 @@ class _SearchPageState extends State<SearchPage> {
                 SnackBar(content: Text('Added ${medicine.name} to cart')),
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CameraScreen extends StatefulWidget {
+  final CameraController cameraController;
+  const CameraScreen({Key? key, required this.cameraController}) : super(key: key);
+  
+  @override
+  _CameraScreenState createState() => _CameraScreenState();
+}
+
+class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
+  bool _isTakingPicture = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      await widget.cameraController.initialize();
+      if (!mounted) return;
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e, stackTrace) {
+      print('Error initializing camera: $e\nStack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to initialize camera')),
+        );
+      }
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      if (_isInitialized && !widget.cameraController.value.isTakingPicture) {
+        widget.cameraController.stopImageStream();
+      }
+    } else if (state == AppLifecycleState.resumed && _isInitialized) {
+      _initializeCamera();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized || !widget.cameraController.value.isInitialized) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          CameraPreview(widget.cameraController),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: FloatingActionButton(
+                backgroundColor: Colors.blue,
+                onPressed: _isTakingPicture
+                    ? null
+                    : () async {
+                        setState(() {
+                          _isTakingPicture = true;
+                        });
+                        try {
+                          final image = await widget.cameraController.takePicture();
+                          if (mounted) {
+                            Navigator.pop(context, image);
+                          }
+                        } catch (e, stackTrace) {
+                          print('Error taking picture: $e\nStack trace: $stackTrace');
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error taking picture')),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _isTakingPicture = false;
+                            });
+                          }
+                        }
+                      },
+                child: Icon(Icons.camera_alt),
+              ),
+            ),
           ),
         ],
       ),

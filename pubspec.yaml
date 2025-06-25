@@ -55,7 +55,9 @@ dev_dependencies:
   url_launcher: ^6.3.1
   geolocator: ^13.0.1 # For user location (optional)
   google_maps_flutter: ^2.7.0
-# For information on the generic Dart part of this file, see the
+  camera: ^0.10.5
+  permission_handler: ^11.3.1 # Use latest version
+  # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
