@@ -1,6 +1,6 @@
 // import 'package:flutter/material.dart';
 // import 'package:pharmaciyti/features/pharmacie/dashboard/view/Dashboard.dart';
-// import 'package:pharmaciyti/features/pharmacie/profil/view/Profile.dart';
+// import 'package:pharmaciyti/features/pharmacie/profil/view/Profile_pharmacy.dart';
 // import 'package:pharmaciyti/features/pharmacie/orders/view/order_details_screen.dart';
 // import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -14,12 +14,24 @@
 // class _OrderScreensState extends State<OrderScreens>
 //     with SingleTickerProviderStateMixin {
 //   late TabController _tabController;
+//   int _selectedNavIndex = 1;
 //   final _supabase = Supabase.instance.client;
+//   bool _hasCheckedAuth = false;
 
 //   @override
 //   void initState() {
 //     super.initState();
 //     _tabController = TabController(length: 2, vsync: this);
+//   }
+
+//   @override
+//   void didChangeDependencies() {
+//     super.didChangeDependencies();
+//     if (_supabase.auth.currentUser == null) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text('Please log in to view orders')),
+//       );
+//     }
 //   }
 
 //   @override
@@ -35,7 +47,6 @@
 //       body: SafeArea(
 //         child: Column(
 //           children: [
-//             // Header with tabs
 //             Container(
 //               padding: const EdgeInsets.all(16.0),
 //               child: Column(
@@ -62,7 +73,7 @@
 //                       labelColor: Colors.green,
 //                       unselectedLabelColor: Colors.grey,
 //                       tabs: const [
-//                         Tab(text: 'Current Orders'),
+//                         Tab(text: 'Current Order'),
 //                         Tab(text: 'Past Orders'),
 //                       ],
 //                     ),
@@ -70,8 +81,6 @@
 //                 ],
 //               ),
 //             ),
-
-//             // Tab content
 //             Expanded(
 //               child: TabBarView(
 //                 controller: _tabController,
@@ -88,7 +97,6 @@
 //   }
 // }
 
-// // Current Orders Tab
 // class CurrentOrdersTab extends StatefulWidget {
 //   const CurrentOrdersTab({Key? key}) : super(key: key);
 
@@ -117,11 +125,10 @@
 //       final response = await _supabase
 //           .from('orders')
 //           .select('''
-//             id, date, status, price_total, quantity, type_payment,
-//             User:user_id(full_name),
-//             delivery(localisation_delivery)
+//             id, date, statut, price_total, type_payment,
+//             user_id(full_name, address, role)
 //           ''')
-//           .inFilter('status', ['pending', 'processing'])
+//           .inFilter('statut', ['pending', 'En attente'])
 //           .order('date', ascending: false);
 
 //       setState(() {
@@ -143,7 +150,7 @@
 //     try {
 //       await _supabase
 //           .from('orders')
-//           .update({'status': 'canceled'})
+//           .update({'statut': 'canceled'})
 //           .eq('id', orderId);
 
 //       setState(() {
@@ -175,27 +182,39 @@
 //       itemCount: currentOrders.length,
 //       itemBuilder: (context, index) {
 //         final order = currentOrders[index];
+//         final userData = order['user_id'] as Map<String, dynamic>? ?? {};
 //         return Padding(
 //           padding: const EdgeInsets.only(bottom: 16),
 //           child: _buildOrderCard(
 //             context,
 //             date: DateTime.parse(order['date']).toString().split(' ')[0],
 //             orderId: order['id'].toString(),
-//             client: order['User']?['full_name'] ?? 'Unknown Client',
-//             address:
-//                 order['delivery']?['localisation_delivery'] ?? 'No address provided',
+//             pharmacy: userData['full_name'] ?? 'Unknown User',
+//             address: userData['address'] ?? 'No Address Provided',
 //             paymentMethod: order['type_payment'] ?? 'Unknown',
-//             amount: '\$${order['price_total']?.toStringAsFixed(2) ?? '0.00'}',
-//             status: order['status'] ?? 'Unknown',
+//             amount: '\$${order['price_total']?.toInt() ?? 0}',
+//             status: _mapStatus(order['statut'] ?? 'Unknown'),
 //             onCancel: () => _cancelOrder(order['id']),
 //           ),
 //         );
 //       },
 //     );
 //   }
+
+//   String _mapStatus(String status) {
+//     switch (status.toLowerCase()) {
+//       case 'pending':
+//       case 'processing':
+//       case 'en attente':
+//         return 'Pending';
+//       case 'delivered':
+//         return 'Completed';
+//       default:
+//         return status.capitalize;
+//     }
+//   }
 // }
 
-// // Past Orders Tab
 // class PastOrdersTab extends StatefulWidget {
 //   const PastOrdersTab({Key? key}) : super(key: key);
 
@@ -224,11 +243,10 @@
 //       final response = await _supabase
 //           .from('orders')
 //           .select('''
-//             id, date, status, price_total, quantity, type_payment,
-//             User:user_id(full_name),
-//             delivery(localisation_delivery)
+//             id, date, statut, price_total, type_payment,
+//             user_id(full_name, address, role)
 //           ''')
-//           .inFilter('status', ['shipped', 'delivered', 'canceled'])
+//           .inFilter('statut', ['shipped', 'delivered', 'canceled', 'completed'])
 //           .order('date', ascending: false);
 
 //       setState(() {
@@ -262,41 +280,53 @@
 //       itemCount: pastOrders.length,
 //       itemBuilder: (context, index) {
 //         final order = pastOrders[index];
+//         final userData = order['user_id'] as Map<String, dynamic>? ?? {};
 //         return Padding(
 //           padding: const EdgeInsets.only(bottom: 16),
 //           child: _buildOrderCard(
 //             context,
 //             date: DateTime.parse(order['date']).toString().split(' ')[0],
 //             orderId: order['id'].toString(),
-//             client: order['User']?['full_name'] ?? 'Unknown Client',
-//             address:
-//                 order['delivery']?['localisation_delivery'] ?? 'No address provided',
+//             pharmacy: userData['full_name'] ?? 'Unknown User',
+//             address: userData['address'] ?? 'No Address Provided',
 //             paymentMethod: order['type_payment'] ?? 'Unknown',
-//             amount: '\$${order['price_total']?.toStringAsFixed(2) ?? '0.00'}',
-//             status: order['status'] ?? 'Unknown',
+//             amount: '\$${order['price_total']?.toInt() ?? 0}',
+//             status: _mapStatus(order['statut'] ?? 'Unknown'),
 //           ),
 //         );
 //       },
 //     );
 //   }
+
+//   String _mapStatus(String status) {
+//     switch (status.toLowerCase()) {
+//       case 'pending':
+//       case 'processing':
+//       case 'en attente':
+//         return 'Pending';
+//       case 'delivered':
+//       case 'completed':
+//         return 'Completed';
+//       default:
+//         return status.capitalize;
+//     }
+//   }
 // }
 
-// // Modified _buildOrderCard widget
 // Widget _buildOrderCard(
 //   BuildContext context, {
 //   required String date,
 //   required String orderId,
-//   required String client,
+//   required String pharmacy,
 //   required String address,
 //   required String paymentMethod,
 //   required String amount,
 //   required String status,
 //   VoidCallback? onCancel,
 // }) {
-//   final bool isPending = status.toLowerCase() == 'pending';
+//   final bool isPending = status == 'Pending';
 //   final Color statusColor = isPending ? Colors.orange : Colors.green;
-//   final IconData statusIcon =
-//       isPending ? Icons.access_time : Icons.check_circle;
+//   final IconData statusIcon = isPending ? Icons.access_time : Icons.check_circle;
 
 //   return Card(
 //     elevation: 2,
@@ -346,9 +376,9 @@
 //                   shape: BoxShape.circle,
 //                 ),
 //                 alignment: Alignment.center,
-//                 child: Text(
-//                   client.isNotEmpty ? client[0].toUpperCase() : 'C',
-//                   style: const TextStyle(
+//                 child: const Text(
+//                   'C',
+//                   style: TextStyle(
 //                       color: Colors.green, fontWeight: FontWeight.bold),
 //                 ),
 //               ),
@@ -358,7 +388,7 @@
 //                   crossAxisAlignment: CrossAxisAlignment.start,
 //                   children: [
 //                     Text(
-//                       client,
+//                       pharmacy,
 //                       style: const TextStyle(fontWeight: FontWeight.w500),
 //                     ),
 //                     const SizedBox(height: 4),
@@ -389,7 +419,7 @@
 //           const SizedBox(height: 16),
 //           Row(
 //             children: [
-//               if (isPending)
+//               if (isPending && onCancel != null)
 //                 Expanded(
 //                   child: ElevatedButton(
 //                     onPressed: onCancel,
@@ -403,7 +433,7 @@
 //                     child: const Text('Cancel'),
 //                   ),
 //                 ),
-//               if (isPending) const SizedBox(width: 12),
+//               if (isPending && onCancel != null) const SizedBox(width: 12),
 //               Expanded(
 //                 child: ElevatedButton(
 //                   onPressed: () {
@@ -412,7 +442,7 @@
 //                       MaterialPageRoute(
 //                         builder: (context) => OrderDetailsScreen(
 //                           orderId: orderId,
-//                           isCompleted: status.toLowerCase() == 'delivered',
+//                           isCompleted: status.toLowerCase() == 'completed',
 //                         ),
 //                       ),
 //                     );
@@ -421,10 +451,10 @@
 //                     backgroundColor: Colors.green,
 //                     foregroundColor: Colors.white,
 //                     shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(30),
+//                       borderRadius: BorderRadius.circular(24),
 //                     ),
 //                   ),
-//                   child: const Text('Info'),
+                  // child: const Text('Info'),
 //                 ),
 //               ),
 //             ],
@@ -434,6 +464,14 @@
 //     ),
 //   );
 // }
+
+// extension StringExtension on String {
+//   String get capitalize {
+//     if (isEmpty) return this;
+//     return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:pharmaciyti/features/pharmacie/dashboard/view/Dashboard.dart';
 import 'package:pharmaciyti/features/pharmacie/profil/view/Profile_pharmacy.dart';
@@ -453,11 +491,13 @@ class _OrderScreensState extends State<OrderScreens>
   int _selectedNavIndex = 1;
   final _supabase = Supabase.instance.client;
   bool _hasCheckedAuth = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -527,41 +567,6 @@ class _OrderScreensState extends State<OrderScreens>
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedNavIndex,
-        selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _selectedNavIndex = index;
-          });
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Dashboard()),
-            );
-          } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Profile()),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Orders',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
     );
   }
 }
@@ -594,11 +599,10 @@ class _CurrentOrdersTabState extends State<CurrentOrdersTab> {
       final response = await _supabase
           .from('orders')
           .select('''
-            id, date, status, price_total, type_payment,
-            User:user_id(full_name, status)
-            delivery(localisation_delivery)
+            id, date, statut, price_total, type_payment,
+            user_id(full_name, address, role)
           ''')
-          .inFilter('status', ['pending', 'processing'])
+          .inFilter('statut', ['pending', 'En attente'])
           .order('date', ascending: false);
 
       setState(() {
@@ -620,7 +624,7 @@ class _CurrentOrdersTabState extends State<CurrentOrdersTab> {
     try {
       await _supabase
           .from('orders')
-          .update({'status': 'canceled'})
+          .update({'statut': 'canceled'})
           .eq('id', orderId);
 
       setState(() {
@@ -652,42 +656,30 @@ class _CurrentOrdersTabState extends State<CurrentOrdersTab> {
       itemCount: currentOrders.length,
       itemBuilder: (context, index) {
         final order = currentOrders[index];
-        final isSelf = order['User']?['role'] != 'self';
+        final userData = order['user_id'] as Map<String, dynamic>? ?? {};
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: _buildOrderCard(
             context,
             date: DateTime.parse(order['date']).toString().split(' ')[0],
             orderId: order['id'].toString(),
-            pharmacy: order['User']?['full_name'] ?? 'Unknown',
-            address: order['delivery']?['localisation_delivery'] ?? 'No address provided',
-            paymentMethod: _mapPaymentMethod(order['type_payment'] ?? 'Unknown'),
+            pharmacy: userData['full_name'] ?? 'Unknown User',
+            address: userData['address'] ?? 'No Address Provided',
+            paymentMethod: order['type_payment'] ?? 'Unknown',
             amount: '\$${order['price_total']?.toInt() ?? 0}',
-            status: _mapStatus(order['status'] ?? 'Unknown'),
-            isSelf: isSelf,
-            onCancel: isSelf ? null : () => _cancelOrder(order['id']),
+            status: _mapStatus(order['statut'] ?? 'Unknown'),
+            onCancel: () => _cancelOrder(order['id']),
           ),
         );
       },
     );
   }
 
-  String _mapPaymentMethod(String typePayment) {
-    switch (typePayment.toLowerCase()) {
-      case 'cash':
-        return 'Pay At Store';
-      case 'card':
-      case 'online':
-        return 'Razorpay';
-      default:
-        return 'Unknown';
-    }
-  }
-
   String _mapStatus(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
       case 'processing':
+      case 'en attente':
         return 'Pending';
       case 'delivered':
         return 'Completed';
@@ -725,11 +717,10 @@ class _PastOrdersTabState extends State<PastOrdersTab> {
       final response = await _supabase
           .from('orders')
           .select('''
-            id, date, status, price_total, type_payment,
-            User:user_id(full_name, role),
-            delivery(localisation_delivery)
+            id, date, statut, price_total, type_payment,
+            user_id(full_name, address, role)
           ''')
-          .inFilter('status', ['shipped', 'delivered', 'canceled'])
+          .inFilter('statut', ['shipped', 'delivered', 'canceled', 'completed'])
           .order('date', ascending: false);
 
       setState(() {
@@ -763,43 +754,32 @@ class _PastOrdersTabState extends State<PastOrdersTab> {
       itemCount: pastOrders.length,
       itemBuilder: (context, index) {
         final order = pastOrders[index];
-        final isSelf = order['User']?['role'] != 'pharmacy';
+        final userData = order['user_id'] as Map<String, dynamic>? ?? {};
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: _buildOrderCard(
             context,
             date: DateTime.parse(order['date']).toString().split(' ')[0],
             orderId: order['id'].toString(),
-            pharmacy: order['User']?['full_name'] ?? 'Unknown',
-            address: order['delivery']?['localisation_delivery'] ?? 'No address provided',
-            paymentMethod: _mapPaymentMethod(order['type_payment'] ?? 'Unknown'),
+            pharmacy: userData['full_name'] ?? 'Unknown User',
+            address: userData['address'] ?? 'No Address Provided',
+            paymentMethod: order['type_payment'] ?? 'Unknown',
             amount: '\$${order['price_total']?.toInt() ?? 0}',
-            status: _mapStatus(order['status'] ?? 'Unknown'),
-            isSelf: isSelf,
+            status: _mapStatus(order['statut'] ?? 'Unknown'),
           ),
         );
       },
     );
   }
 
-  String _mapPaymentMethod(String typePayment) {
-    switch (typePayment.toLowerCase()) {
-      case 'cash':
-        return 'Pay At Store';
-      case 'card':
-      case 'online':
-        return 'Razorpay';
-      default:
-        return 'Unknown';
-    }
-  }
-
   String _mapStatus(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
       case 'processing':
+      case 'en attente':
         return 'Pending';
       case 'delivered':
+      case 'completed':
         return 'Completed';
       default:
         return status.capitalize;
@@ -816,13 +796,11 @@ Widget _buildOrderCard(
   required String paymentMethod,
   required String amount,
   required String status,
-  required bool isSelf,
   VoidCallback? onCancel,
 }) {
   final bool isPending = status == 'Pending';
   final Color statusColor = isPending ? Colors.orange : Colors.green;
-  final IconData statusIcon =
-      isPending ? Icons.access_time : Icons.check_circle;
+  final IconData statusIcon = isPending ? Icons.access_time : Icons.check_circle;
 
   return Card(
     elevation: 2,
@@ -859,19 +837,6 @@ Widget _buildOrderCard(
                 'Order ID: $orderId',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              if (isSelf)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'Self',
-                    style: TextStyle(color: Colors.green),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 16),
