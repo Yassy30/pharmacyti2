@@ -39,7 +39,15 @@ class ProfilePage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) =>  PersonalInfoPage()),
+                          MaterialPageRoute(
+                            builder: (context) => PersonalInfoPage(
+                              fullName: userViewModel.fullName ?? 'Unknown User',
+                              email: userViewModel.email ?? 'No Email',
+                              phoneNumber: userViewModel.phoneNumber ?? 'No Phone',
+                              address: userViewModel.address ?? 'No Address',
+                              imageProfile: userViewModel.imageProfile,
+                            ),
+                          ),
                         );
                       },
                       child: Container(
@@ -63,10 +71,11 @@ class ProfilePage extends StatelessWidget {
                             radius: screenWidth * 0.1,
                             backgroundImage: userViewModel.imageProfile != null
                                 ? NetworkImage(userViewModel.imageProfile!)
-                                : AssetImage('assets/images/client.png') as ImageProvider,
+                                : const AssetImage('assets/images/client.png')
+                                    as ImageProvider,
                           ),
-                          title: Text( 
-                            userViewModel.fullName ?? 'Fatima Bichouarine',
+                          title: Text(
+                            userViewModel.fullName ?? 'Unknown User',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: screenWidth * 0.05,

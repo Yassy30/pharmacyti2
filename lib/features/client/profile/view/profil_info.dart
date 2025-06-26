@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
 
 class PersonalInfoPage extends StatelessWidget {
+  final String fullName;
+  final String email;
+  final String phoneNumber;
+  final String address;
+  final String? imageProfile;
+
+  const PersonalInfoPage({
+    Key? key,
+    required this.fullName,
+    required this.email,
+    required this.phoneNumber,
+    required this.address,
+    this.imageProfile,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -32,7 +47,10 @@ class PersonalInfoPage extends StatelessWidget {
                       CircleAvatar(
                         radius: screenWidth * 0.16,
                         backgroundColor: Colors.grey[200],
-                        backgroundImage: AssetImage('assets/images/client.png'),
+                        backgroundImage: imageProfile != null
+                            ? NetworkImage(imageProfile!)
+                            : const AssetImage('assets/images/client.png')
+                                as ImageProvider,
                       ),
                       Positioned(
                         bottom: 8,
@@ -48,7 +66,8 @@ class PersonalInfoPage extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: Icon(Icons.camera_alt, size: screenWidth * 0.07, color: Colors.black),
+                          child: Icon(Icons.camera_alt,
+                              size: screenWidth * 0.07, color: Colors.black),
                         ),
                       ),
                     ],
@@ -56,16 +75,16 @@ class PersonalInfoPage extends StatelessWidget {
                 ),
                 SizedBox(height: screenHeight * 0.03),
                 _buildLabel('Your name', screenWidth),
-                _buildInfoField('Fatima Bichouarine', context),
+                _buildInfoField(fullName, context),
                 SizedBox(height: screenHeight * 0.025),
                 _buildLabel('Your Email', screenWidth),
-                _buildInfoField('fatemabichouarine@gmail.com', context),
+                _buildInfoField(email, context),
                 SizedBox(height: screenHeight * 0.025),
                 _buildLabel('Phone number', screenWidth),
-                _buildInfoField('0612345678', context, hint: '0612345678'),
+                _buildInfoField(phoneNumber, context, hint: '0612345678'),
                 SizedBox(height: screenHeight * 0.025),
                 _buildLabel('Addresse', screenWidth),
-                _buildInfoField('123, Mohammed V Avenue', context),
+                _buildInfoField(address, context),
                 SizedBox(height: screenHeight * 0.04),
               ],
             ),
