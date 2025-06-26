@@ -88,4 +88,17 @@ class OrderRepository {
       rethrow;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getOrdersByUser(String userId) async {
+    final response = await supabase
+        .from('orders')
+        .select()
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+;
+    if (response == null) {
+      throw Exception('Failed to fetch orders: \${response.error!.message}');
+    }
+    return List<Map<String, dynamic>>.from(response);
+  }
 }
