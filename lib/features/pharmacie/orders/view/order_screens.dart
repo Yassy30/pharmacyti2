@@ -126,15 +126,16 @@ class _CurrentOrdersTabState extends State<CurrentOrdersTab> {
           .from('orders')
           .select('''
             id, date, statut, price_total, type_payment,
-            user_id(full_name, address, role)
+            user_id:"User"!orders_user_id_fkey(full_name, address, role) 
           ''')
-          .inFilter('statut', ['pending', 'En attente'])
+          .inFilter('statut', ['pending'])
           .order('date', ascending: false);
 
       setState(() {
         currentOrders = List<Map<String, dynamic>>.from(response);
         isLoading = false;
       });
+      // print('Current orders: $currentOrders'); 
     } catch (error) {
       setState(() {
         isLoading = false;
@@ -255,6 +256,7 @@ class _PastOrdersTabState extends State<PastOrdersTab> {
         pastOrders = List<Map<String, dynamic>>.from(response);
         isLoading = false;
       });
+      // print('Past orders: $pastOrders'); 
     } catch (error) {
       setState(() {
         isLoading = false;

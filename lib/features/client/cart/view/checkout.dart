@@ -27,6 +27,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final _orderRepository = OrderRepository();
 
   @override
+  void initState() {
+    super.initState();
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    userViewModel.fetchUserDetails();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final total = widget.subtotal + widget.deliveryFee;
     final userViewModel = Provider.of<UserViewModel>(context);
@@ -79,10 +86,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ],
         ),
         child: ElevatedButton(
-          onPressed: () {
-            // Save order to database
+          onPressed: () async {
+            final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+            await userViewModel.fetchUserDetails(); // Force refresh if needed
+
             final order = Order(
-              id: DateTime.now().millisecondsSinceEpoch,
               userName: userViewModel.fullName ?? 'Unknown User',
               userPhone: userViewModel.phoneNumber ?? '+212 695 30 41 87',
               userAddress: userViewModel.address ?? '123 Mohammed V Avenue, Agadir',
@@ -95,18 +103,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
               estimatedDelivery: '30-45 min',
               orderDate: DateTime.now(),
             );
-            _orderRepository.saveOrder(order);
 
-            // Navigate to Order Confirmation page
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OrderConfirmationPage(
-                  orderId: order.id,
-                  estimatedDelivery: order.estimatedDelivery,
+            try {
+              await _orderRepository.saveOrder(order);
+              // Navigate to Order Confirmation with the generated orderId
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderConfirmationPage(
+                    orderId: order.id ?? 0, // Use the generated id if available, fallback to 0
+                    estimatedDelivery: order.estimatedDelivery,
+                  ),
                 ),
-              ),
-            );
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to save order: $e')),
+              );
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
