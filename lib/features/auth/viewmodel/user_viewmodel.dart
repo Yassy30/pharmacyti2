@@ -1,3 +1,4 @@
+// lib/features/auth/viewmodel/user_viewmodel.dart
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -19,35 +20,37 @@ class UserViewModel with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  get username => null;
-  
-Future<void> fetchUserDetails() async {
+ Future<void> fetchUserDetails() async {
   try {
     _isLoading = true;
+    _errorMessage = null; // Clear previous errors
     notifyListeners();
 
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
-      _errorMessage = 'No authenticated user found';
+      _errorMessage = 'Please sign in to view your profile.';
       return;
     }
 
     final response = await _client
         .from('User')
-        .select('full_name, phone_number, address, image_profile')
+        .select('full_name, email, phone_number, address, image_profile, role')
         .eq('id', userId)
         .single();
 
     _fullName = response['full_name'];
+    _email = response['email'];
     _phoneNumber = response['phone_number'];
     _address = response['address'];
     _imageProfile = response['image_profile'];
-    
-    // Debug log
-    if (kDebugMode) print('Image URL: $_imageProfile');
-    
   } catch (e) {
-    _errorMessage = 'Failed to fetch user details: $e';
+    if (e is PostgrestException) {
+      _errorMessage = 'Database error: ${e.message}';
+    } else if (e is AuthException) {
+      _errorMessage = 'Authentication error: ${e.message}';
+    } else {
+      _errorMessage = 'An unexpected error occurred. Please try again.';
+    }
     if (kDebugMode) print('Fetch error: $e');
   } finally {
     _isLoading = false;
@@ -81,7 +84,7 @@ Future<void> fetchUserDetails() async {
 
       if (updates.isNotEmpty) {
         await _client.from('User').update(updates).eq('id', userId);
-        await fetchUserDetails(); // Refresh data after update
+        await fetchUserDetails();
         return true;
       }
       return false;
@@ -95,6 +98,8 @@ Future<void> fetchUserDetails() async {
     }
   }
 
+
+  
   Future<bool> isProfileComplete() async {
     await fetchUserDetails();
     return _fullName != null &&

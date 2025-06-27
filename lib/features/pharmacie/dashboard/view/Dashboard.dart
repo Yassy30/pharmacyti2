@@ -88,7 +88,7 @@ class _DashboardScreenState extends State<Dashboard> {
                                       ),
                                     )
                                   : Text(
-                                      userViewModel.username ?? 'Pharmacy User',
+                                      userViewModel.fullName ?? 'Pharmacy User',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: screenWidth * 0.045,
