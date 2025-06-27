@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/features/client/profile/view/profile_client.dart';
 import 'package:provider/provider.dart';
 import 'package:pharmaciyti/features/auth/viewmodel/autho_viewmodel.dart';
-import 'package:pharmaciyti/features/client/profile/view/infosclient.dart';
 import 'package:pharmaciyti/features/delivery/profile/view/infosliv.dart';
 import 'package:pharmaciyti/features/pharmacie/profil/view/infosph.dart';
 
@@ -54,7 +54,7 @@ class WhoAreYou extends StatelessWidget {
                 GestureDetector(
                   onTap: authViewModel.isLoading
                       ? null
-                      : () => _handleRoleSelection(context, 'client', const InfosClient()),
+                      : () => _handleRoleSelection(context, 'client',  ProfilePage()),
                   child: Column(
                     children: [
                       Container(

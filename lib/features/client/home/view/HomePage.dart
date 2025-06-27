@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/features/auth/viewmodel/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -10,7 +11,7 @@ import 'package:pharmaciyti/features/client/search/viewmodel/search_viewmodel.da
 import 'package:pharmaciyti/features/pharmacie/inventory/data/models/category.dart' as myCategory;
 import 'package:pharmaciyti/features/client/home/data/models/pharmacy.dart' as myPharmacy;
 import 'map_page.dart';
- 
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -21,6 +22,33 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+      final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
+      if (userViewModel.fullName == null && !userViewModel.isLoading) {
+        userViewModel.fetchUserDetails();
+      }
+      homeViewModel.fetchUser(); // Ensure initial user data fetch
+    });
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
+    ).then((_) {
+      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+      final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
+      userViewModel.fetchUserDetails();
+      homeViewModel.fetchUser(); // Refresh HomeViewModel data after profile update
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +88,11 @@ class _HomePageState extends State<HomePage> {
           onTap: (index) {
             setState(() {
               _selectedIndex = index;
+              if (index == 1) {
+                _searchQuery = '';
+              } else if (index == 3) {
+                _navigateToProfile();
+              }
             });
           },
           showUnselectedLabels: true,
@@ -144,6 +177,7 @@ class _HomePageState extends State<HomePage> {
                           onPressed: () {
                             setState(() {
                               _selectedIndex = 1;
+                              _searchQuery = '';
                             });
                           },
                         ),
@@ -328,8 +362,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Improved user avatar widget with better error handling
   Widget _buildUserAvatar(HomeViewModel viewModel, double screenWidth) {
+    final userViewModel = Provider.of<UserViewModel>(context);
     return Container(
       width: screenWidth * 0.11,
       height: screenWidth * 0.11,
@@ -338,17 +372,15 @@ class _HomePageState extends State<HomePage> {
         border: Border.all(color: Colors.blue.shade200, width: 2),
       ),
       child: ClipOval(
-        child: _buildProfileImage(viewModel, screenWidth),
+        child: _buildProfileImage(userViewModel, screenWidth),
       ),
     );
   }
 
-  Widget _buildProfileImage(HomeViewModel viewModel, double screenWidth) {
-    // Get imageProfile from your User model
-    String? imageUrl = viewModel.user?.imageProfile;
+  Widget _buildProfileImage(UserViewModel userViewModel, double screenWidth) {
+    String? imageUrl = userViewModel.imageProfile;
     
     if (imageUrl != null && imageUrl.isNotEmpty) {
-      // Use CachedNetworkImage for better performance and error handling
       return CachedNetworkImage(
         imageUrl: imageUrl,
         fit: BoxFit.cover,
@@ -368,23 +400,27 @@ class _HomePageState extends State<HomePage> {
         },
       );
     } else {
-      print('No profile image URL found for user: ${viewModel.user?.fullName}');
       return _buildDefaultAvatar(screenWidth);
     }
   }
 
   Widget _buildDefaultAvatar(double screenWidth) {
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     return Container(
       color: Colors.blue.shade50,
-      child: Icon(
-        Icons.person,
-        size: screenWidth * 0.06,
-        color: Colors.blue.shade300,
+      child: Center(
+        child: Text(
+          userViewModel.getUserInitials(),
+          style: TextStyle(
+            fontSize: screenWidth * 0.045,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue.shade600,
+          ),
+        ),
       ),
     );
   }
 
-  // Improved category item with better image handling
   Widget _buildCategoryItem(myCategory.Category category, double screenWidth) {
     return Container(
       margin: EdgeInsets.only(right: screenWidth * 0.04),
@@ -461,6 +497,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPharmacyItem(myPharmacy.Pharmacy pharmacy, double screenWidth, double screenHeight) {
+    final bool isOpen = pharmacy.isOpen ?? false;
     return Container(
       margin: EdgeInsets.only(bottom: screenHeight * 0.02),
       padding: EdgeInsets.all(screenWidth * 0.03),
@@ -501,13 +538,13 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.005),
                 decoration: BoxDecoration(
-                  color: true ? Colors.green.shade100 : Colors.red.shade100,
+                  color: isOpen ? Colors.green.shade100 : Colors.red.shade100,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  true ? 'Open now' : 'Closed',
+                  isOpen ? 'Open now' : 'Closed',
                   style: TextStyle(
-                    color: true ? Colors.green.shade700 : Colors.red.shade700,
+                    color: isOpen ? Colors.green.shade700 : Colors.red.shade700,
                     fontSize: screenWidth * 0.03,
                     fontWeight: FontWeight.bold,
                   ),

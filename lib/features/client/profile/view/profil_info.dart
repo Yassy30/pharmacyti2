@@ -29,23 +29,32 @@ class PersonalInfoPage extends StatefulWidget {
 }
 
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
+  
   File? _imageFile;
   Uint8List? _webImage;
   String? _imageName;
   bool _hasChanges = false;
+  bool _isUploading = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
+    _setupChangeListeners();
+  }
+
+  void _initializeControllers() {
     fullNameController.text = widget.fullName;
     phoneController.text = widget.phoneNumber;
     addressController.text = widget.address;
+  }
 
-    // Listen for changes to detect if the user has modified any fields
+  void _setupChangeListeners() {
     fullNameController.addListener(_checkForChanges);
     phoneController.addListener(_checkForChanges);
     addressController.addListener(_checkForChanges);
@@ -62,43 +71,53 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        if (bytes.length > 5 * 1024 * 1024) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image size must be less than 5MB')),
-          );
-          return;
+    try {
+      final pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile != null) {
+        if (kIsWeb) {
+          final bytes = await pickedFile.readAsBytes();
+          if (bytes.length > 5 * 1024 * 1024) {
+            _showSnackBar('Image size must be less than 5MB', isError: true);
+            return;
+          }
+          setState(() {
+            _webImage = bytes;
+            _imageName = pickedFile.name;
+            _imageFile = null;
+            _hasChanges = true;
+          });
+        } else {
+          final file = File(pickedFile.path);
+          if (await file.length() > 5 * 1024 * 1024) {
+            _showSnackBar('Image size must be less than 5MB', isError: true);
+            return;
+          }
+          setState(() {
+            _imageFile = file;
+            _webImage = null;
+            _imageName = null;
+            _hasChanges = true;
+          });
         }
-        setState(() {
-          _webImage = bytes;
-          _imageName = pickedFile.name;
-          _imageFile = null;
-          _hasChanges = true;
-        });
-      } else {
-        final file = File(pickedFile.path);
-        if (await file.length() > 5 * 1024 * 1024) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image size must be less than 5MB')),
-          );
-          return;
-        }
-        setState(() {
-          _imageFile = file;
-          _webImage = null;
-          _imageName = null;
-          _hasChanges = true;
-        });
       }
+    } catch (e) {
+      _showSnackBar('Failed to pick image: $e', isError: true);
     }
   }
 
   Future<String?> _uploadImage(String userId) async {
     if (_imageFile == null && _webImage == null) return null;
-    final fileName = '$userId${DateTime.now().millisecondsSinceEpoch}.jpg';
+    
+    setState(() => _isUploading = true);
+    
+    final fileName = '${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    
     try {
       if (kIsWeb && _webImage != null) {
         await Supabase.instance.client.storage
@@ -109,113 +128,69 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             .from('userprofil')
             .upload(fileName, _imageFile!);
       }
+      
       return Supabase.instance.client.storage
           .from('userprofil')
           .getPublicUrl(fileName);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload image: $e')),
-      );
+      _showSnackBar('Failed to upload image: $e', isError: true);
       return null;
+    } finally {
+      setState(() => _isUploading = false);
     }
   }
 
-  Widget _buildImageContainer(String? existingImageUrl) {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: 180,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: _hasChanges ? Colors.blue.shade200 : Colors.green.shade200,
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: _getImageWidget(existingImageUrl),
-        ),
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: Duration(seconds: isError ? 4 : 2),
       ),
     );
   }
 
-  Widget _getImageWidget(String? existingImageUrl) {
-    if (kIsWeb && _webImage != null) {
-      return Image.memory(
-        _webImage!,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _placeholderWidget(),
-      );
-    } else if (!kIsWeb && _imageFile != null) {
-      return Image.file(
-        _imageFile!,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _placeholderWidget(),
-      );
-    } else if (existingImageUrl != null && existingImageUrl.isNotEmpty) {
-      return Image.network(
-        existingImageUrl,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
-                  : null,
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          if (kDebugMode) print('Error loading image: $error');
-          return _placeholderWidget();
-        },
-      );
-    } else {
-      return _placeholderWidget();
+  String? _validateFullName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Full name is required';
     }
+    if (value.trim().length < 2) {
+      return 'Full name must be at least 2 characters';
+    }
+    return null;
   }
 
-  Widget _placeholderWidget() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.image_outlined, size: 48, color: Colors.grey.shade400),
-        const SizedBox(height: 8),
-        const Text('Tap to select image (optional)', style: TextStyle(color: Colors.grey)),
-      ],
-    );
+  String? _validatePhoneNumber(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Phone number is required';
+    }
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    if (!userViewModel.isValidPhoneNumber(value)) {
+      return 'Please enter a valid phone number (e.g., 0612345678)';
+    }
+    return null;
+  }
+
+  String? _validateAddress(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Address is required';
+    }
+    if (value.trim().length < 5) {
+      return 'Address must be at least 5 characters';
+    }
+    return null;
   }
 
   Future<void> _saveChanges() async {
-    final fullName = fullNameController.text.trim();
-    final phone = phoneController.text.trim();
-    final address = addressController.text.trim();
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-
-    if (fullName.isEmpty || phone.isEmpty || address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
-      );
-      return;
-    }
-
-    // Phone number validation (Moroccan format: starts with '06', 10 digits)
-    if (!phone.startsWith('06') || phone.length != 10 || !RegExp(r'^\d+$').hasMatch(phone)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid phone number (e.g., 0612345678)')),
-      );
-      return;
-    }
-
-    final userId = Supabase.instance.client.auth.currentUser?.id;
+    final userId = userViewModel.currentUserId;
+    
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No authenticated user found')),
-      );
+      _showSnackBar('No authenticated user found', isError: true);
       return;
     }
 
@@ -226,144 +201,225 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     }
 
     final success = await userViewModel.updateUserDetails(
-      fullName: fullName,
-      phoneNumber: phone,
-      address: address,
+      fullName: fullNameController.text.trim(),
+      phoneNumber: phoneController.text.trim(),
+      address: addressController.text.trim(),
       imageProfile: imageUrl,
     );
 
     if (success) {
+      _showSnackBar('Profile updated successfully!');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const Congratulations()),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(userViewModel.errorMessage ?? 'Failed to save profile')),
+      _showSnackBar(
+        userViewModel.errorMessage ?? 'Failed to save profile',
+        isError: true,
       );
     }
+  }
+
+  void _resetChanges() {
+    setState(() {
+      fullNameController.text = widget.fullName;
+      phoneController.text = widget.phoneNumber;
+      addressController.text = widget.address;
+      _imageFile = null;
+      _webImage = null;
+      _imageName = null;
+      _hasChanges = false;
+    });
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_hasChanges) return true;
+    
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Changes?'),
+        content: const Text('You have unsaved changes. Are you sure you want to go back?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Discard', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    ) ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final userViewModel = Provider.of<UserViewModel>(context);
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () {
-                      if (_hasChanges) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Discard Changes?'),
-                            content: const Text('You have unsaved changes. Are you sure you want to go back?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('Discard', style: TextStyle(color: Colors.red)),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
-                  if (_hasChanges)
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          fullNameController.text = widget.fullName;
-                          phoneController.text = widget.phoneNumber;
-                          addressController.text = widget.address;
-                          _imageFile = null;
-                          _webImage = null;
-                          _imageName = null;
-                          _hasChanges = false;
-                        });
-                      },
-                      child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-                    ),
-                ],
+    
+    return Consumer<UserViewModel>(
+      builder: (context, userViewModel, child) {
+        return WillPopScope(
+          onWillPop: _onWillPop,
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () async {
+                  if (await _onWillPop()) {
+                    Navigator.pop(context);
+                  }
+                },
               ),
-              SizedBox(height: screenHeight * 0.01),
-              Center(child: _buildImageContainer(widget.imageProfile)),
-              SizedBox(height: screenHeight * 0.03),
-              _buildLabel('Your name', screenWidth),
-              _buildInfoField(widget.fullName, fullNameController, context),
-              SizedBox(height: screenHeight * 0.025),
-              _buildLabel('Your Email', screenWidth),
-              _buildInfoField(widget.email, null, context, isEditable: false),
-              SizedBox(height: screenHeight * 0.025),
-              _buildLabel('Phone number', screenWidth),
-              _buildInfoField(widget.phoneNumber, phoneController, context, hint: '0612345678'),
-              SizedBox(height: screenHeight * 0.025),
-              _buildLabel('Address', screenWidth),
-              _buildInfoField(widget.address, addressController, context),
-              SizedBox(height: screenHeight * 0.04),
-              ElevatedButton(
-                onPressed: userViewModel.isLoading || !_hasChanges
-                    ? null
-                    : () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Save Changes'),
-                            content: const Text('Are you sure you want to save your profile changes?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  _saveChanges();
-                                },
-                                child: const Text('Save', style: TextStyle(color: Colors.blue)),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff2299c3),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+              title: const Text(
+                'Edit Profile',
+                style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+              ),
+              actions: [
+                if (_hasChanges)
+                  TextButton(
+                    onPressed: _resetChanges,
+                    child: const Text('Reset', style: TextStyle(color: Colors.red)),
                   ),
-                ),
-                child: userViewModel.isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Save Changes',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+              ],
+            ),
+            body: SafeArea(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06, vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(child: _buildImageContainer()),
+                      SizedBox(height: screenHeight * 0.03),
+                      
+                      _buildFormField(
+                        label: 'Full Name',
+                        controller: fullNameController,
+                        validator: _validateFullName,
+                        hint: 'Enter your full name',
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.025),
+                      
+                      _buildFormField(
+                        label: 'Email',
+                        initialValue: widget.email,
+                        isEnabled: false,
+                        hint: 'Email cannot be changed',
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.025),
+                      
+                      _buildFormField(
+                        label: 'Phone Number',
+                        controller: phoneController,
+                        validator: _validatePhoneNumber,
+                        hint: '0612345678',
+                        keyboardType: TextInputType.phone,
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.025),
+                      
+                      _buildFormField(
+                        label: 'Address',
+                        controller: addressController,
+                        validator: _validateAddress,
+                        hint: 'Enter your address',
+                        maxLines: 2,
+                      ),
+                      
+                      SizedBox(height: screenHeight * 0.04),
+                      
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: (userViewModel.isUpdating || _isUploading || !_hasChanges)
+                              ? null
+                              : _saveChanges,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff2299c3),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: (userViewModel.isUpdating || _isUploading)
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Save Changes',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImageContainer() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        width: 120,
+        height: 120,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: _hasChanges ? Colors.blue.shade300 : Colors.grey.shade300,
+            width: 2,
+          ),
+        ),
+        child: ClipOval(
+          child: Stack(
+            children: [
+              _getImageWidget(),
+              if (_isUploading)
+                Container(
+                  color: Colors.black54,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
               ),
             ],
           ),
@@ -372,76 +428,119 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     );
   }
 
-  Widget _buildLabel(String label, double screenWidth) {
-    return Padding(
-      padding: EdgeInsets.only(left: screenWidth * 0.01, bottom: screenWidth * 0.01),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: screenWidth * 0.042,
-          fontWeight: FontWeight.w500,
-          color: Colors.black,
+  Widget _getImageWidget() {
+    if (kIsWeb && _webImage != null) {
+      return Image.memory(
+        _webImage!,
+        fit: BoxFit.cover,
+        width: 120,
+        height: 120,
+        errorBuilder: (context, error, stackTrace) => _placeholderWidget(),
+      );
+    } else if (!kIsWeb && _imageFile != null) {
+      return Image.file(
+        _imageFile!,
+        fit: BoxFit.cover,
+        width: 120,
+        height: 120,
+        errorBuilder: (context, error, stackTrace) => _placeholderWidget(),
+      );
+    } else if (widget.imageProfile != null && widget.imageProfile!.isNotEmpty) {
+      return Image.network(
+        widget.imageProfile!,
+        fit: BoxFit.cover,
+        width: 120,
+        height: 120,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: 120,
+            height: 120,
+            color: Colors.grey[200],
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) => _placeholderWidget(),
+      );
+    } else {
+      return _placeholderWidget();
+    }
+  }
+
+  Widget _placeholderWidget() {
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    return Container(
+      width: 120,
+      height: 120,
+      color: Colors.grey[200],
+      child: Center(
+        child: Text(
+          userViewModel.getUserInitials(),
+          style: const TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoField(String value, TextEditingController? controller, BuildContext context,
-      {String? hint, bool isEditable = true}) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.04,
-        vertical: screenHeight * 0.018,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: controller != null && controller.text != value ? Colors.blue.shade200 : Colors.transparent,
-          width: 1.5,
+  Widget _buildFormField({
+    required String label,
+    TextEditingController? controller,
+    String? initialValue,
+    String? Function(String?)? validator,
+    String? hint,
+    bool isEnabled = true,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 2,
-            offset: Offset(0, 1),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          initialValue: initialValue,
+          validator: validator,
+          enabled: isEnabled,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: isEnabled ? Colors.grey[50] : Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xff2299c3)),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            suffixIcon: isEnabled ? const Icon(Icons.edit, size: 20) : null,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: isEditable
-                ? TextField(
-                    controller: controller?..text = value,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: hint ?? value,
-                      hintStyle: TextStyle(color: Colors.grey[600]),
-                    ),
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.042,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  )
-                : Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.042,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-          ),
-          if (isEditable)
-            Icon(Icons.edit, color: Colors.black, size: screenWidth * 0.055),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

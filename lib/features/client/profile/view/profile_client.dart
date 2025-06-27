@@ -8,7 +8,7 @@ import 'package:pharmaciyti/features/client/profile/view/profil_info.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
-
+ 
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
