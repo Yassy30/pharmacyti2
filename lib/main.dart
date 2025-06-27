@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pharmaciyti/features/client/cart/viewmodel/cart_viewmodel.dart';
 import 'package:pharmaciyti/features/client/home/viewmodel/home_viewmodel.dart';
 import 'package:pharmaciyti/features/client/search/viewmodel/search_viewmodel.dart';
+import 'package:pharmaciyti/features/delivery/dashboard/viewmodel/dashboard_viewmodel.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:pharmaciyti/features/auth/view/login.dart';
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UserViewModel()),
         ChangeNotifierProvider(create: (_) => SearchViewModel()),
         ChangeNotifierProvider(create: (_) => CartViewModel()), // Add this line
+        ChangeNotifierProvider(create: (_)=>DashboardViewModel())
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

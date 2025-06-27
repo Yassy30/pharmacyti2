@@ -19,7 +19,7 @@ CREATE TABLE "User" (
     image_profile TEXT,
     phone_number VARCHAR(20)
 );
-
+ 
 -- Create category table
 CREATE TABLE category (
     id SERIAL PRIMARY KEY,
