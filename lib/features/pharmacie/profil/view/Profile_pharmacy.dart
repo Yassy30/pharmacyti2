@@ -7,7 +7,7 @@ import 'package:pharmaciyti/features/pharmacie/profil/view/ProfileInfos.dart';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
-
+ 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;

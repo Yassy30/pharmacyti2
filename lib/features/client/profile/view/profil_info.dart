@@ -31,7 +31,7 @@ class PersonalInfoPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: screenHeight * 0.02),
-                Row(
+                Row( 
                   children: [
                     IconButton(
                       icon: Icon(Icons.arrow_back, color: Colors.black),

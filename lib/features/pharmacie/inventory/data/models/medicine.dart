@@ -8,7 +8,7 @@ class Medicine {
   final String? image;
   final String? description;
   final bool statusPrescription;
-  final double? rating;
+  // final double? rating;
 
   Medicine({
      this.id,
@@ -20,7 +20,7 @@ class Medicine {
     this.image,
     this.description,
     required this.statusPrescription,
-    this.rating,
+    // this.rating,
   });
 
   factory Medicine.fromJson(Map<String, dynamic> json) {
@@ -34,7 +34,7 @@ class Medicine {
       image: json['image'],
       description: json['description'],
       statusPrescription: json['status_prescription'] ?? false,
-      rating: (json['rating'] as num?)?.toDouble(),
+      // rating: (json['rating'] as num?)?.toDouble(),
     );
   }
 
@@ -48,7 +48,7 @@ class Medicine {
       'image': image,
       'description': description,
       'status_prescription': statusPrescription,
-      'rating': rating,
+      // 'rating': rating,
     };
     if (id != null) {
       data['id'] = id;

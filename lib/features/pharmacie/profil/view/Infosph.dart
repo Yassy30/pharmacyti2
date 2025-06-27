@@ -28,7 +28,7 @@ class _InfosphState extends State<Infosph> {
   String? _imageName;
   
   get userId_ => null;
-  
+   
   @override
   void initState() {
     super.initState();
