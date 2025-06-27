@@ -5,6 +5,8 @@ import 'package:pharmaciyti/features/client/cart/viewmodel/cart_viewmodel.dart';
 import 'package:pharmaciyti/features/client/order/order_confirmation.dart';
 import 'package:pharmaciyti/features/client/order/order_repository.dart';
 import 'package:pharmaciyti/features/client/payment/view/AddCard.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 
 class CheckoutPage extends StatefulWidget {
   final double subtotal;
@@ -32,7 +34,89 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     userViewModel.fetchUserDetails();
   }
+Future<void> _finalizeOrder(CartViewModel cartViewModel) async {
+  try {
+    final supabase = Supabase.instance.client;
+    final userId = supabase.auth.currentUser?.id;
 
+    // Find the prescription item
+    final prescriptionItem = cartViewModel.cartItems.firstWhere(
+      (item) => item.name == 'Uploaded Prescription',
+      orElse: () => CartItem(
+        id: null,
+        name: 'No Prescription',
+        price: 0.0,
+        quantity: 0,
+        pharmacy: 'Unknown',
+        distance: 'N/A',
+        isSelected: false,
+        prescriptionId: null,
+      ),
+    );
+
+    if (prescriptionItem != null ) {
+      // Fetch a pharmacy (e.g., nearest or default)
+      final pharmacies = await supabase
+          .from('User')
+          .select('id')
+          .eq('role', 'pharmacy')
+          .limit(1);
+      if (pharmacies.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No pharmacies available')),
+        );
+        return;
+      }
+      final pharmacyId = pharmacies[0]['id'] as String;
+
+      // Update prescription_images with pharmacy_id
+      await supabase.from('prescription_images').update({
+        'pharmacy_user_id': pharmacyId,
+      }).eq('id', prescriptionItem.prescriptionId!);
+
+      // Create order
+      final orderResponse = await supabase.from('orders').insert({
+        'user_id': userId,
+        'prescription_image_id': prescriptionItem.prescriptionId,
+        'pharmacy_user_id': pharmacyId,
+        'total_amount': cartViewModel.total,
+        'delivery_fee': cartViewModel.deliveryFee,
+        'status': 'pending',
+        'created_at': DateTime.now().toIso8601String(),
+        'payment_method': _paymentMethod == 0 ? 'Cash on Delivery' : 'Online Payment',
+      }).select().single();
+
+      print('Order created: ${orderResponse['id']}');
+
+      // Clear cart or selected items after order
+      cartViewModel.cartItems.removeWhere((item) => item.isSelected);
+      cartViewModel.notifyListeners();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Order sent to pharmacy!')),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderConfirmationPage(
+            orderId: orderResponse['id'] ?? 0,
+            estimatedDelivery: '30-45 min',
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No valid prescription in cart')),
+      );
+    }
+  } catch (e) {
+    print('Error finalizing order: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error processing order')),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     final total = widget.subtotal + widget.deliveryFee;
@@ -105,13 +189,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
             );
 
             try {
-              await _orderRepository.saveOrder(order);
-              // Navigate to Order Confirmation with the generated orderId
+              // Save the order and get the ID
+              final orderId = await _orderRepository.saveOrder(order);
+              // Navigate to Order Confirmation with the actual orderId
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => OrderConfirmationPage(
-                    orderId: order.id ?? 0, // Use the generated id if available, fallback to 0
+                    orderId: orderId, // Use the actual ID returned from saveOrder
                     estimatedDelivery: order.estimatedDelivery,
                   ),
                 ),
@@ -260,9 +345,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Colors.grey.shade300),
                             ),
-                            child: Image.asset(
+                            // Inside the Container for Uploaded prescription in checkout.dart
+                            child: Image.network(
                               item.image ?? 'assets/images/eclo_ointment.jpeg',
                               fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => Image.asset(
+                                'assets/images/eclo_ointment.jpeg',
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ),

@@ -14,11 +14,8 @@ class _CartPageState extends State<CartPage> {
   @override
   void initState() {
     super.initState();
-    // Add prescription as a CartItem when the page loads
-    final cartViewModel = Provider.of<CartViewModel>(context, listen: false);
-    if (!cartViewModel.cartItems.any((item) => item.name == 'Uploaded Prescription')) {
-      cartViewModel.addPrescription('assets/images/eclo_ointment.jpeg');
-    }
+    // We no longer need to add a default prescription here
+    // The prescription will be added when the user takes a picture
   }
 
   @override
@@ -135,9 +132,45 @@ class _CartPageState extends State<CartPage> {
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.grey.shade300),
                               ),
-                              child: Image.asset(
-                                'assets/images/eclo_ointment.jpeg',
-                                fit: BoxFit.contain,
+                              // Inside the Container for Uploaded prescription in cart.dart
+                              child: Builder(
+                                builder: (context) {
+                                  // Find the prescription item
+                                  final prescriptionItem = cartViewModel.cartItems.firstWhere(
+                                    (item) => item.name == 'Uploaded Prescription',
+                                    orElse: () => CartItem(
+                                      id: 0,
+                                      name: '',
+                                      price: 0,
+                                      quantity: 0,
+                                      pharmacy: '',
+                                      distance: '',
+                                      image: 'assets/images/eclo_ointment.jpeg',
+                                      isSelected: false,
+                                    ),
+                                  );
+                                  
+                                  final imagePath = prescriptionItem.image ?? 'assets/images/eclo_ointment.jpeg';
+                                  
+                                  // Check if it's a network URL or local asset
+                                  if (imagePath.startsWith('http')) {
+                                    // It's a network URL
+                                    return Image.network(
+                                      imagePath,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                                        'assets/images/eclo_ointment.jpeg',
+                                        fit: BoxFit.contain,
+                                      ),
+                                    );
+                                  } else {
+                                    // It's a local asset
+                                    return Image.asset(
+                                      imagePath,
+                                      fit: BoxFit.contain,
+                                    );
+                                  }
+                                },
                               ),
                             ),
                           ),

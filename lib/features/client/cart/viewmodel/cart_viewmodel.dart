@@ -10,29 +10,31 @@ class CartItem {
   final String distance;
   final String? image;
   bool isSelected;
-
-  CartItem({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.quantity,
-    required this.pharmacy,
-    required this.distance,
-    this.image,
-    required this.isSelected,
-  });
+final String? prescriptionId; // Change to String? to match UUID
+  CartItem(
+      {required this.id,
+      required this.name,
+      required this.price,
+      required this.quantity,
+      required this.pharmacy,
+      required this.distance,
+      this.image,
+      required this.isSelected,
+      this.prescriptionId // Make it optional but storable
+      });
 
   factory CartItem.fromMedicine(Medicine medicine) {
     return CartItem(
-      id: medicine.id,
-      name: medicine.name,
-      price: medicine.price,
-      quantity: 1,
-      pharmacy: 'Pharmacy Al Baraka', // Default pharmacy, adjust as needed
-      distance: '1.2 km', // Default distance, adjust as needed
-      image: medicine.image,
-      isSelected: true,
-    );
+        id: medicine.id,
+        name: medicine.name,
+        price: medicine.price,
+        quantity: 1,
+        pharmacy: 'Pharmacy Al Baraka', // Default pharmacy, adjust as needed
+        distance: '1.2 km', // Default distance, adjust as needed
+        image: medicine.image,
+        isSelected: true,
+        prescriptionId: null // Not applicable for regular medicines    );
+        );
   }
 }
 
@@ -42,7 +44,8 @@ class CartViewModel extends ChangeNotifier {
   List<CartItem> get cartItems => _cartItems;
 
   void addToCart(Medicine medicine) {
-    final existingItemIndex = _cartItems.indexWhere((item) => item.id == medicine.id);
+    final existingItemIndex =
+        _cartItems.indexWhere((item) => item.id == medicine.id);
     if (existingItemIndex != -1) {
       // Item already exists, increase quantity
       _cartItems[existingItemIndex].quantity++;
@@ -77,27 +80,36 @@ class CartViewModel extends ChangeNotifier {
   }
 
   // Add prescription as a CartItem
-  void addPrescription(String imagePath, {double price = 0.0}) {
-    final prescriptionId = DateTime.now().millisecondsSinceEpoch; // Unique ID
-    if (!_cartItems.any((item) => item.name == 'Uploaded Prescription')) {
-      final prescription = CartItem(
-        id: prescriptionId,
-        name: 'Uploaded Prescription',
-        price: price,
-        quantity: 1,
-        pharmacy: 'Pharmacy Al Baraka', // Adjust as needed
-        distance: 'N/A', // Adjust as needed
-        image: imagePath,
-        isSelected: false,
-      );
-      _cartItems.add(prescription);
-      notifyListeners();
-    }
+  void addPrescription(String imageUrl,
+      {double price = 0.0, String? prescriptionId, String? pharmacyId}) {
+    final uniqueId = prescriptionId ??
+        DateTime.now()
+            .millisecondsSinceEpoch.toString(); // Use prescription ID if available
+
+    // Remove any existing prescription items
+    _cartItems.removeWhere((item) => item.name == 'Uploaded Prescription');
+
+    // Add the new prescription with the Supabase image URL
+    final prescription = CartItem(
+      id: int.tryParse(uniqueId)?? 0,
+      name: 'Uploaded Prescription',
+      price: price,
+      quantity: 1,
+      pharmacy: 'Pharmacy Al Baraka', // Adjust as needed
+      distance: 'N/A', // Adjust as needed
+      image: imageUrl, // Use the Supabase image URL
+      isSelected: true, // Auto-select the prescription
+      prescriptionId: prescriptionId, // Store the prescription ID
+    );
+
+    _cartItems.add(prescription);
+    notifyListeners();
   }
 
   // Update prescription selection
   void updatePrescriptionSelection(bool value) {
-    final prescriptionIndex = _cartItems.indexWhere((item) => item.name == 'Uploaded Prescription');
+    final prescriptionIndex =
+        _cartItems.indexWhere((item) => item.name == 'Uploaded Prescription');
     if (prescriptionIndex != -1) {
       _cartItems[prescriptionIndex].isSelected = value;
       notifyListeners();

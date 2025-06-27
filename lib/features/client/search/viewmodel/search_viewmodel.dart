@@ -84,51 +84,39 @@ class SearchViewModel extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>?> uploadPrescriptionImage(File image, String pharmacyUserId) async {
-    try {
-      final userId = _client.auth.currentUser?.id;
-      print('Current user ID: $userId');
-      if (userId == null) {
-        throw Exception('User not authenticated');
-      }
-
-      // Verify pharmacy_user_id exists
-      final pharmacyCheck = await _client
-          .from('User')
-          .select('id')
-          .eq('id', pharmacyUserId)
-          .eq('role', 'pharmacy')
-          .maybeSingle();
-      if (pharmacyCheck == null) {
-        throw Exception('Invalid pharmacy_user_id: $pharmacyUserId');
-      }
-
-      final fileName = 'prescriptions/$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      print('Uploading image to: $fileName');
-      final response = await _client.storage.from('prescriptions').upload(fileName, image);
-
-      print('Storage upload response: $response');
-      if (response.isEmpty) {
-        throw Exception('Failed to upload image to storage');
-      }
-
-      final imageUrl = _client.storage.from('prescriptions').getPublicUrl(fileName);
-      print('Image URL: $imageUrl');
-
-      final imageData = await _client.from('prescription_images').insert({
-        'user_id': userId,
-        'image_url': imageUrl,
-        'pharmacy_user_id': pharmacyUserId,
-      }).select().single();
-
-      print('Uploaded prescription image: $imageData');
-      return imageData;
-    } catch (e, stackTrace) {
-      print('Error uploading prescription image: $e\nStack trace: $stackTrace');
-      return null;
+  Future<Map<String, dynamic>?> uploadPrescriptionImage(File image) async {
+  try {
+    final userId = _client.auth.currentUser?.id;
+    print('Current user ID: $userId');
+    if (userId == null) {
+      throw Exception('User not authenticated');
     }
-  }
 
+    final fileName = 'prescriptions/$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    print('Uploading image to: $fileName');
+    final response = await _client.storage.from('prescriptions').upload(fileName, image);
+
+    print('Storage upload response: $response');
+    if (response.isEmpty) {
+      throw Exception('Failed to upload image to storage');
+    }
+
+    final imageUrl = _client.storage.from('prescriptions').getPublicUrl(fileName);
+    print('Image URL: $imageUrl');
+
+    final imageData = await _client.from('prescription_images').insert({
+      'user_id': userId, // Associate with the client’s user ID
+      'image_url': imageUrl,
+      // No pharmacy_user_id here; will be added during order creation
+    }).select().single();
+
+    print('Uploaded prescription image: $imageData');
+    return imageData;
+  } catch (e, stackTrace) {
+    print('Error uploading prescription image: $e\nStack trace: $stackTrace');
+    return null;
+  }
+}
   // SOLUTION 1: Check your orders table schema first
   Future<void> checkOrdersTableSchema() async {
     try {
@@ -247,4 +235,31 @@ class SearchViewModel extends ChangeNotifier {
       return false;
     }
   }
-}
+  
+Future<String?> getCurrentPharmacyId() async {
+  try {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      print('No authenticated user found');
+      return null;
+    }
+
+    // Check if the user is a pharmacy
+    final pharmacyData = await _client
+        .from('User')
+        .select('id')
+        .eq('id', userId)
+        .eq('role', 'pharmacy')
+        .maybeSingle();
+
+    if (pharmacyData == null) {
+      print('User is not a pharmacy');
+      return null;
+    }
+
+    return userId; // Return the user's ID as the pharmacy ID if they are a pharmacy
+  } catch (e, stackTrace) {
+    print('Error fetching pharmacy ID: $e\nStack trace: $stackTrace');
+    return null;
+  }
+}}

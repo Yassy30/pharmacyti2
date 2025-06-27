@@ -132,49 +132,46 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  Future<void> _handlePrescriptionImage(XFile image, SearchViewModel viewModel, BuildContext originalContext) async {
-    print('Picture taken: ${image.path}');
+ Future<void> _handlePrescriptionImage(XFile image, SearchViewModel viewModel, BuildContext originalContext) async {
+  print('Picture taken: ${image.path}');
+  
+  try {
+    final imageFile = File(image.path);
     
-    try {
-      final pharmacyUserId = await _selectPharmacy(viewModel);
-      print('Selected pharmacy ID: $pharmacyUserId');
-      
-      if (pharmacyUserId != null) {
-        final imageFile = File(image.path);
-        
-        final imageData = await viewModel.uploadPrescriptionImage(imageFile, pharmacyUserId);
-        if (imageData != null) {
-          // Try the minimal version first (most likely to work)
-          final success = await viewModel.createPrescriptionOrderMinimal(pharmacyUserId, imageData['id']);
-          
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(success
-                    ? 'Prescription sent to pharmacy!'
-                    : 'Failed to send prescription'),
-              ),
-            );
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to upload prescription image')),
-            );
-          }
-        }
-      } else {
-        print('No pharmacy selected');
-      }
-    } catch (e, stackTrace) {
-      print('Error in prescription upload flow: $e\nStack trace: $stackTrace');
+    // Upload the prescription image without requiring a pharmacy ID initially
+    final imageData = await viewModel.uploadPrescriptionImage(imageFile);
+    if (imageData != null) {
+      // Add to cart with the uploaded image URL
+      final cartViewModel = Provider.of<CartViewModel>(originalContext, listen: false);
+      cartViewModel.addPrescription(
+        imageData['image_url'],
+        prescriptionId: imageData['id'],
+        // No pharmacyId needed here; will be assigned during checkout
+      );
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading prescription')),
+        ScaffoldMessenger.of(originalContext).showSnackBar(
+          SnackBar(
+            content: Text('Prescription added to cart!'),
+          ),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(originalContext).showSnackBar(
+          SnackBar(content: Text('Failed to upload prescription image')),
         );
       }
     }
+  } catch (e, stackTrace) {
+    print('Error in prescription upload flow: $e Stack trace: $stackTrace');
+    if (mounted) {
+      ScaffoldMessenger.of(originalContext).showSnackBar(
+        SnackBar(content: Text('Error uploading prescription')),
+      );
+    }
   }
+}
 
   Future<String?> _selectPharmacy(SearchViewModel viewModel) async {
     final pharmacies = await viewModel.fetchPharmacies();

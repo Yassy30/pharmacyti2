@@ -34,7 +34,7 @@ class Order {
 class OrderRepository {
   final supabase = Supabase.instance.client;
 
-  Future<void> saveOrder(Order order) async {
+  Future<int> saveOrder(Order order) async {
     try {
       // Récupérer l'ID de l'utilisateur connecté
       final user = supabase.auth.currentUser;
@@ -53,6 +53,10 @@ class OrderRepository {
         'quantity': order.items.fold(0, (sum, item) => sum + item.quantity),
         'type_payment': paymentEnumValue,
         'user_id': user.id,
+        // Add prescription_image_id if there's a prescription in the order
+        'prescription_image_id': order.items.any((item) => item.name == 'Uploaded Prescription') 
+            ? order.items.firstWhere((item) => item.name == 'Uploaded Prescription').id 
+            : null,
       }).select('id').single(); // Récupérer uniquement l'ID
 
       final orderId = orderInsert['id'] as int;
@@ -83,6 +87,7 @@ class OrderRepository {
       });
 
       print('✅ Commande enregistrée avec succès ! ID: $orderId');
+      return orderId; // Return the order ID
     } catch (e) {
       print('❌ Exception lors de la sauvegarde de la commande: $e');
       rethrow;
