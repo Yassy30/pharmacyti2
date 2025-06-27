@@ -11,7 +11,7 @@ import 'package:pharmaciyti/features/delivery/congratulation/congratsliv.dart';
 class InfosLiv extends StatefulWidget {
   const InfosLiv({Key? key}) : super(key: key);
 
-  @override
+  @override 
   State<InfosLiv> createState() => _InfosLivState();
 }
 

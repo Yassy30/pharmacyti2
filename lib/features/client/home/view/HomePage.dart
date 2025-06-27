@@ -1,7 +1,8 @@
-
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/features/auth/viewmodel/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../search/view/search.dart';
 import '../../cart/view/cart.dart';
 import 'package:pharmaciyti/features/client/profile/view/profile_client.dart';
@@ -21,6 +22,33 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+      final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
+      if (userViewModel.fullName == null && !userViewModel.isLoading) {
+        userViewModel.fetchUserDetails();
+      }
+      homeViewModel.fetchUser(); // Ensure initial user data fetch
+    });
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
+    ).then((_) {
+      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+      final homeViewModel = Provider.of<HomeViewModel>(context, listen: false);
+      userViewModel.fetchUserDetails();
+      homeViewModel.fetchUser(); // Refresh HomeViewModel data after profile update
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +88,11 @@ class _HomePageState extends State<HomePage> {
           onTap: (index) {
             setState(() {
               _selectedIndex = index;
+              if (index == 1) {
+                _searchQuery = '';
+              } else if (index == 3) {
+                _navigateToProfile();
+              }
             });
           },
           showUnselectedLabels: true,
@@ -110,12 +143,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Row(
                           children: [
-                            CircleAvatar(
-                              radius: screenWidth * 0.055,
-                              backgroundImage: viewModel.user?.imageProfile != null
-                                  ? NetworkImage(viewModel.user!.imageProfile!)
-                                  : AssetImage('assets/images/client.png') as ImageProvider,
-                            ),
+                            _buildUserAvatar(viewModel, screenWidth),
                             SizedBox(width: screenWidth * 0.03),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,6 +177,7 @@ class _HomePageState extends State<HomePage> {
                           onPressed: () {
                             setState(() {
                               _selectedIndex = 1;
+                              _searchQuery = '';
                             });
                           },
                         ),
@@ -170,49 +199,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                // child: Row(
-                //   children: [
-                //     Icon(Icons.search, color: Colors.grey, size: screenWidth * 0.06),
-                //     SizedBox(width: 8),
-                //     Expanded(
-                //       child: TextField(
-                //         onChanged: (value) {
-                //           setState(() {
-                //             _searchQuery = value;
-                //             // Update SearchViewModel for consistency
-                //             Provider.of<SearchViewModel>(context, listen: false).updateSearchQuery(value);
-                //           });
-                //         },
-                //         onSubmitted: (value) {
-                //           setState(() {
-                //             _selectedIndex = 1;
-                //           });
-                //         },
-                //         decoration: InputDecoration(
-                //           hintText: 'Search for medicines, pharmacies...',
-                //           border: InputBorder.none,
-                //           hintStyle: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.037),
-                //         ),
-                //       ),
-                //     ),
-                //     IconButton(
-                //       icon: Icon(Icons.document_scanner_outlined, color: Colors.grey, size: screenWidth * 0.06),
-                //       onPressed: () {
-                //         ScaffoldMessenger.of(context).showSnackBar(
-                //           SnackBar(content: Text('Document scanner not implemented yet')),
-                //         );
-                //       },
-                //     ),
-                //     IconButton(
-                //       icon: Icon(Icons.filter_list, color: Colors.grey, size: screenWidth * 0.06),
-                //       onPressed: () {
-                //         ScaffoldMessenger.of(context).showSnackBar(
-                //           SnackBar(content: Text('Advanced filter options not implemented yet')),
-                //         );
-                //       },
-                //     ),
-                //   ],
-                // ),
               ),
             ),
             Padding(
@@ -376,6 +362,65 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildUserAvatar(HomeViewModel viewModel, double screenWidth) {
+    final userViewModel = Provider.of<UserViewModel>(context);
+    return Container(
+      width: screenWidth * 0.11,
+      height: screenWidth * 0.11,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.blue.shade200, width: 2),
+      ),
+      child: ClipOval(
+        child: _buildProfileImage(userViewModel, screenWidth),
+      ),
+    );
+  }
+
+  Widget _buildProfileImage(UserViewModel userViewModel, double screenWidth) {
+    String? imageUrl = userViewModel.imageProfile;
+    
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: Colors.grey.shade200,
+          child: Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade300),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) {
+          print('Error loading profile image: $error');
+          print('Failed URL: $imageUrl');
+          return _buildDefaultAvatar(screenWidth);
+        },
+      );
+    } else {
+      return _buildDefaultAvatar(screenWidth);
+    }
+  }
+
+  Widget _buildDefaultAvatar(double screenWidth) {
+    final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+    return Container(
+      color: Colors.blue.shade50,
+      child: Center(
+        child: Text(
+          userViewModel.getUserInitials(),
+          style: TextStyle(
+            fontSize: screenWidth * 0.045,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue.shade600,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoryItem(myCategory.Category category, double screenWidth) {
     return Container(
       margin: EdgeInsets.only(right: screenWidth * 0.04),
@@ -388,44 +433,74 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               shape: BoxShape.circle,
+              border: Border.all(color: Colors.blue.shade100, width: 1),
             ),
-            child: Center(
-              child: category.image != null
-                  ? Image.network(
-                      category.image!,
-                      width: screenWidth * 0.075,
-                      height: screenWidth * 0.075,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Image.asset(
-                        'assets/images/pharmacy_logo.png',
-                        width: screenWidth * 0.075,
-                        height: screenWidth * 0.075,
-                        fit: BoxFit.contain,
-                      ),
-                    )
-                  : Image.asset(
-                      'assets/images/pharmacy_logo.png',
-                      width: screenWidth * 0.075,
-                      height: screenWidth * 0.075,
-                      fit: BoxFit.contain,
-                    ),
-            ),
+            child: _buildCategoryImage(category, screenWidth),
           ),
           SizedBox(height: screenWidth * 0.02),
-          Text(
-            category.name,
-            style: TextStyle(fontSize: screenWidth * 0.03),
-            textAlign: TextAlign.center,
+          SizedBox(
+            width: screenWidth * 0.15,
+            child: Text(
+              category.name,
+              style: TextStyle(
+                fontSize: screenWidth * 0.03,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildCategoryImage(myCategory.Category category, double screenWidth) {
+    if (category.image != null && category.image!.isNotEmpty) {
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: category.image!,
+          width: screenWidth * 0.075,
+          height: screenWidth * 0.075,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            width: screenWidth * 0.075,
+            height: screenWidth * 0.075,
+            color: Colors.blue.shade50,
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade300),
+              ),
+            ),
+          ),
+          errorWidget: (context, url, error) {
+            print('Error loading category image for ${category.name}: $error');
+            return _buildCategoryDefaultIcon(screenWidth);
+          },
+        ),
+      );
+    } else {
+      return _buildCategoryDefaultIcon(screenWidth);
+    }
+  }
+
+  Widget _buildCategoryDefaultIcon(double screenWidth) {
+    return Center(
+      child: Icon(
+        Icons.medical_services_outlined,
+        size: screenWidth * 0.075,
+        color: Colors.blue.shade400,
+      ),
+    );
+  }
+
   Widget _buildPharmacyItem(myPharmacy.Pharmacy pharmacy, double screenWidth, double screenHeight) {
+    final bool isOpen = pharmacy.isOpen ?? false;
     return Container(
       margin: EdgeInsets.only(bottom: screenHeight * 0.02),
-      padding: EdgeInsets.all(screenWidth * 0.03), // Reduced padding
+      padding: EdgeInsets.all(screenWidth * 0.03),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade200),
         borderRadius: BorderRadius.circular(12),
@@ -440,7 +515,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Minimize Column size
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -455,7 +530,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(width: screenWidth * 0.02),
                   Icon(Icons.star, color: Colors.amber, size: screenWidth * 0.035),
                   Text(
-                    '4.5', // Placeholder: Add rating to Pharmacy model
+                    '4.5',
                     style: TextStyle(fontSize: screenWidth * 0.035),
                   ),
                 ],
@@ -463,13 +538,13 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.005),
                 decoration: BoxDecoration(
-                  color: true ? Colors.green.shade100 : Colors.red.shade100, // Placeholder: Add isOpen
+                  color: isOpen ? Colors.green.shade100 : Colors.red.shade100,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  true ? 'Open now' : 'Closed', // Placeholder: Add isOpen
+                  isOpen ? 'Open now' : 'Closed',
                   style: TextStyle(
-                    color: true ? Colors.green.shade700 : Colors.red.shade700,
+                    color: isOpen ? Colors.green.shade700 : Colors.red.shade700,
                     fontSize: screenWidth * 0.03,
                     fontWeight: FontWeight.bold,
                   ),
@@ -477,7 +552,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          SizedBox(height: screenHeight * 0.005), // Reduced spacing
+          SizedBox(height: screenHeight * 0.005),
           Row(
             children: [
               Icon(Icons.location_on, color: Colors.red, size: screenWidth * 0.035),
@@ -486,7 +561,7 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontSize: screenWidth * 0.035),
               ),
               Text(
-                ' • 0.8 km away', // Placeholder: Add distance calculation
+                ' • 0.8 km away',
                 style: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.035),
               ),
             ],

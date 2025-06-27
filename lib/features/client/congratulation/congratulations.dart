@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:pharmaciyti/features/client/profile/view/profile_client.dart';
 import 'package:provider/provider.dart';
 import 'package:pharmaciyti/features/auth/viewmodel/user_viewmodel.dart';
 import 'package:pharmaciyti/features/client/home/view/homepage.dart';
-import 'package:pharmaciyti/features/client/profile/view/infosclient.dart';
 
 class Congratulations extends StatelessWidget {
   const Congratulations({super.key});
@@ -68,7 +68,7 @@ class Congratulations extends StatelessWidget {
                         } else {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) =>  InfosClient()),
+                            MaterialPageRoute(builder: (context) =>  ProfilePage()),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Please complete your profile')),
