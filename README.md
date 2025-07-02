@@ -39,6 +39,13 @@ Pharmaciyti is a mobile application that serves as a bridge between **pharmacies
 
 ---
 
+## 📸 Screenshots
+
+ - **Figma file**: <br>
+   -client: [https://www.figma.com/design/9BA0paHk8dDXOCDRgRjB6V/Pharmacyti?node-id=0-1&p=f&t=PSjGTWDJVqFPhduu-0]
+   -Pharmacy & delivery guy: [https://www.figma.com/design/Xk7gyFRZU1wQicqY9gYcLz/Phamrmacy-Livreur-profile?node-id=0-1&p=f&t=c0FApgHtz7KOQBDp-0]
+---
+
 ## 📌 Contributors
 
 - **Designed by**: Fatima Bichouarine
