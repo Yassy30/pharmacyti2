@@ -1,6 +1,3 @@
-
-# pharmacyti
-=======
 # pharmaciyti - Mobile Medicine Delivery App
 
 Pharmaciyti is a mobile application that serves as a bridge between **pharmacies**, **customers**, **delivery personnel**, and **administrators**. It facilitates the online ordering and delivery of medications, ensuring faster and more efficient access to pharmacy services.
@@ -42,17 +39,38 @@ Pharmaciyti is a mobile application that serves as a bridge between **pharmacies
 
 ---
 
-## 📁 Project Structure
-
-
 ## 📌 Contributors
 
 - **Designed by**: Fatima Bichouarine
 - **Developed by**: Yasmina Jabrouni - Oumaima Mouine
 - **Final Year Project (PFE)** – Mobile App Development
+---
+## ⚙️ Getting Started
 
-## 📬 Contact
-For more info or collaboration:
-📧 yasminajabrouni@gmail.com
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/Yassy30/pharmacyti2.git
+```
+### 2. Check Flutter Installation
+```bash
+flutter doctor
+```
+### 3. Install dependencies
+
+```bash
+flutter pub get
+```
+### 4. Run the app
+
+```bash
+flutter run
+```
+---
+
+## 👩‍💻 Author
+Yassmina Jabrouni<br>
+ -📧 yasminajabrouni@gmail.com <br>
+ -🌐 My Portfolio [https://yasmina-jabrouni.netlify.app/]
 
 
